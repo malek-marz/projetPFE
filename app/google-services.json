@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "345639466138",
+    "project_id": "journeybuddy-83c5e",
+    "storage_bucket": "journeybuddy-83c5e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:345639466138:android:65d3b1218d5cfaa1abdb23",
+        "android_client_info": {
+          "package_name": "com.example.testapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt1TsFkoN3xsbGTMn2l9MuigZD1Vl8em4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
