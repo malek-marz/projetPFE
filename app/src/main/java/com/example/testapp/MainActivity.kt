@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         FirebaseApp.initializeApp(this)
         setContent {
             val navController = rememberNavController()
-            NavHost(navController = navController, startDestination = "splash") {
+            NavHost(navController = navController, startDestination = Splash.SplashScreenRoute) {
                 composable(Splash.SplashScreenRoute) { Splash.SplashScreen(navController) }
                 composable(Login.LoginScreenRoute) { Login.LoginScreen(navController) }
                 composable(Register.RegisterScreenRoute) { Register.RegisterScreen(navController) }
