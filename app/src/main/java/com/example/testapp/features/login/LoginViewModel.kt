@@ -29,5 +29,15 @@ class LoginViewModel : ViewModel() {
             true
         }
     }
+    fun login():Boolean{
+        return if(validateCredentials()){
+            //firebase
+            true
+        }
+        else{
+
+            false
+        }
+    }
 
 }

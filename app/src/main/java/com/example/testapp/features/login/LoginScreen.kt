@@ -126,7 +126,7 @@ class Login {
 
                     Button(
                         onClick = {
-                            if (viewModel.validateCredentials()) {
+                            if (viewModel.login()) {
                                 navController.navigate("HomeScreen")
                             }
                         },
