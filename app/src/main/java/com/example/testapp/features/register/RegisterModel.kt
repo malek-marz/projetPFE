@@ -26,6 +26,7 @@ fun validateRegisterModel(model: RegisterModel): Boolean {
         return false
     }
 
+
     // Vérification de l'email
     if (!android.util.Patterns.EMAIL_ADDRESS.matcher(model.email).matches()) {
         return false
