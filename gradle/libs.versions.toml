@@ -45,7 +45,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth-ktx" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
-firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
+firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx" }
 
 
 [plugins]
@@ -57,4 +57,4 @@ google-gms-google-services = { id = "com.google.gms.google-services", version.re
 
 [bundles]
 room = ["room-runtime", "room-ktx"]
-firebase = ["firebase-auth", "firebase-firestore"]
+firebase = ["firebase-auth", "firebase-firestore", "firebase-database-ktx"]
