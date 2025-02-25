@@ -125,8 +125,11 @@ class Login {
                     val darkBlue = Color(0xFF00008B)
 
                     Button(
-                        onClick = { viewModel.login { navController.navigate("HomeScreen") }},
-
+                        onClick = {
+                            if (viewModel.login()) {
+                                navController.navigate("HomeScreen")
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -168,3 +171,6 @@ private fun LoginPreviewPhone() {
     val navController = rememberNavController()
     Login.LoginScreen(navController)
 }
+
+
+
