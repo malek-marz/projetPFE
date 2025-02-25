@@ -20,24 +20,34 @@ class LoginViewModel : ViewModel() {
         _state.value = _state.value.copy(password = password)
     }
 
-    fun validateCredentials(): Boolean {
+    private fun validateCredentials(): Boolean {
         return if (_state.value.email.isEmpty() || _state.value.password.isEmpty()) {
-            _state.value = _state.value.copy(errorMessage = "Veuillez remplir tous les champs")
+            _state.update { it.copy(errorMessage = "Veuillez remplir tous les champs") }
             false
         } else {
-            _state.value = _state.value.copy(errorMessage = "")
+            _state.update { it.copy(errorMessage = "") }
             true
         }
     }
-    fun login():Boolean{
-        return if(validateCredentials()){
-            //firebase
-            true
-        }
-        else{
 
-            false
-        }
+    fun login(onLoginSuccess: () -> Unit) {
+        if (!validateCredentials()) return
+
+        _state.update { it.copy(isLoading = true) }
+
+        val email = _state.value.email
+        val password = _state.value.password
+
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    _state.update { it.copy(errorMessage = "Connexion réussie", isLoading = false) }
+                    onLoginSuccess()  // Redirige après connexion réussie
+                } else {
+                    _state.update { it.copy(errorMessage = "Échec : ${task.exception?.message}", isLoading = false) }
+                }
+
+            }
     }
 
 }
