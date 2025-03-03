@@ -1,6 +1,7 @@
 
 package com.example.testapp.features.register
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,6 +47,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.testapp.R.drawable.logo
+import com.example.yourapp.model.RegisterModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.math.sign
 
 class Register {
 
@@ -174,7 +179,26 @@ class Register {
 
                     // Sign Up Button
                     Button(
-                        onClick = { /* Sign-up logic here */ },
+                        onClick = {
+                            val signUpModel = RegisterModel(
+                                firstName = firstName,
+                                lastName = lastName,
+                                username = username,
+                                email = email,
+                                password = password,
+                                confirmPassword = confirmPassword,
+                                birthday = birthday,
+                                gender = selectedGender,
+                                country = selectedCountry
+                            )
+                            signUpModel.register(
+                                onRegisterSuccess = {
+                                    Log.i("FireBaseRegister","SignUp Successful")
+                                },
+                                onRegisterFailed = {
+                                    Log.i("FireBaseRegister","SignUp Failed")
+                                })
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
                     ) {
