@@ -1,5 +1,6 @@
 package com.example.testapp.features.login
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.testapp.features.login.model.LoginState
@@ -44,11 +45,14 @@ class LoginViewModel : ViewModel() {
 
         val email = _state.value.email
         val password = _state.value.password
+        Log.i("LoginViewModel","email: $email, password: $password")
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     _state.update { it.copy(errorMessage = "Connexion réussie", isLoading = false) }
+
+
                     onLoginSuccess()  // Redirige après connexion réussie
                 } else {
                     _state.update { it.copy(errorMessage = "Échec : ${task.exception?.message}", isLoading = false) }

@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,10 +46,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.testapp.R.drawable.logo
-import com.example.yourapp.model.RegisterModel
+import com.example.testapp.features.login.LoginViewModel
+import com.example.yourapp.model.RegisterViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ktx.R
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.math.sign
 
@@ -59,16 +63,9 @@ class Register {
 
         @OptIn(ExperimentalMaterial3Api::class)
         @Composable
-        fun RegisterScreen(navController: NavController) {
-            var firstName by remember { mutableStateOf("") }
-            var lastName by remember { mutableStateOf("") }
-            var username by remember { mutableStateOf("") }
-            var email by remember { mutableStateOf("") }
-            var password by remember { mutableStateOf("") }
-            var confirmPassword by remember { mutableStateOf("") }
-            var birthday by remember { mutableStateOf("") }
-            var selectedGender by remember { mutableStateOf("") }
-            var selectedCountry by remember { mutableStateOf("") }
+        fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = viewModel()) {
+            val state by viewModel.state.collectAsState()
+
 
             Box(
                 modifier = Modifier
@@ -104,8 +101,8 @@ class Register {
 
                     // First Name Field
                     OutlinedTextField(
-                        value = firstName,
-                        onValueChange = { firstName = it },
+                        value = state.firstName,
+                        onValueChange = { viewModel.onFirstNameChanged(it) },
                         leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "First Name") },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("First Name") }
@@ -113,8 +110,8 @@ class Register {
 
                     // Last Name Field
                     OutlinedTextField(
-                        value = lastName,
-                        onValueChange = { lastName = it },
+                        value = state.lastName,
+                        onValueChange = { viewModel.onLastNameChanged(it) },
                         leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Last Name") },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Last Name") }
@@ -122,8 +119,8 @@ class Register {
 
                     // Username Field
                     OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
+                        value = state.username,
+                        onValueChange = { state.username = it },
                         leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Username") },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Username") }
@@ -131,8 +128,8 @@ class Register {
 
                     // Email Field
                     OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
+                        value = state.email,
+                        onValueChange = { state.email = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         leadingIcon = { Icon(imageVector = Icons.Filled.Email, contentDescription = "Email") },
                         modifier = Modifier.fillMaxWidth(),
@@ -141,8 +138,8 @@ class Register {
 
                     // Password Field
                     OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
+                        value = state.password,
+                        onValueChange = { state.password = it },
                         visualTransformation = PasswordVisualTransformation(),
                         leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Password") },
                         modifier = Modifier.fillMaxWidth(),
@@ -151,8 +148,8 @@ class Register {
 
                     // Confirm Password Field
                     OutlinedTextField(
-                        value = confirmPassword,
-                        onValueChange = { confirmPassword = it },
+                        value = state.confirmPassword,
+                        onValueChange = { viewModel.onConfirmPasswordChanged(it)},
                         visualTransformation = PasswordVisualTransformation(),
                         leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Confirm Password") },
                         modifier = Modifier.fillMaxWidth(),
@@ -160,15 +157,15 @@ class Register {
                     )
 
                     // Gender Dropdown
-                    GenderDropdown(selectedGender) { selectedGender = it }
+                    GenderDropdown(state.gender) { state.gender = it }
 
                     // Country Dropdown
-                    CountryDropdown(selectedCountry) { selectedCountry = it }
+                    CountryDropdown(state.country) { state.country = it }
 
                     // Birthday Field
                     OutlinedTextField(
-                        value = birthday,
-                        onValueChange = { birthday = it },
+                        value = state.birthday,
+                        onValueChange = { viewModel.onBirthdayChanged(it)},
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         leadingIcon = { Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Date of Birth") },
                         modifier = Modifier.fillMaxWidth(),
@@ -180,24 +177,12 @@ class Register {
                     // Sign Up Button
                     Button(
                         onClick = {
-                            val signUpModel = RegisterModel(
-                                firstName = firstName,
-                                lastName = lastName,
-                                username = username,
-                                email = email,
-                                password = password,
-                                confirmPassword = confirmPassword,
-                                birthday = birthday,
-                                gender = selectedGender,
-                                country = selectedCountry
+                            viewModel.register(
+                                onRegisterSuccess = TODO(),
+                                onRegisterFailed = TODO()
                             )
-                            signUpModel.register(
-                                onRegisterSuccess = {
-                                    Log.i("FireBaseRegister","SignUp Successful")
-                                },
-                                onRegisterFailed = {
-                                    Log.i("FireBaseRegister","SignUp Failed")
-                                })
+                                    Log.i("FireBaseRegister", "SignUp Successful")
+                                    navController.navigate("LoginScreen")
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
