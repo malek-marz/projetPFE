@@ -1,4 +1,4 @@
-package com.example.testapp.features.homescreen.model
+package com.example.testapp.features.homescreen
 
 import androidx.lifecycle.ViewModel
 import com.example.testapp.features.login.model.LoginState
