@@ -28,8 +28,9 @@ class Home {
         const val homeScreenRoute = "homeScreen"
 
         @Composable
-        fun homeScreen(navController: NavController, viewModel: homeScreenViewmodel = viewModel()) {
+        fun homeScreen(navController: NavController, viewModel: HomeScreenViewModel = viewModel()) {
             val state by viewModel.state.collectAsState()
+
 
             Box(
                 modifier = Modifier
