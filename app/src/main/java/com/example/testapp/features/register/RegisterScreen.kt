@@ -49,12 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.testapp.R.drawable.logo
-import com.example.testapp.features.login.LoginViewModel
 import com.example.yourapp.model.RegisterViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.ktx.R
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlin.math.sign
 
 class Register {
 
@@ -93,7 +88,7 @@ class Register {
 
                     // Title
                     Text(
-                        text = "Sign Up",
+                        text = "S'inscrire",
                         style = MaterialTheme.typography.headlineMedium,
                         color = Color.Black,
                         modifier = Modifier.padding(bottom = 16.dp)
@@ -103,27 +98,27 @@ class Register {
                     OutlinedTextField(
                         value = state.firstName,
                         onValueChange = { viewModel.onFirstNameChanged(it) },
-                        leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "First Name") },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Prénom") },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("First Name") }
+                        label = { Text("Prénom") }
                     )
 
                     // Last Name Field
                     OutlinedTextField(
                         value = state.lastName,
                         onValueChange = { viewModel.onLastNameChanged(it) },
-                        leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Last Name") },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Nom") },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Last Name") }
+                        label = { Text("Nom") }
                     )
 
                     // Username Field
                     OutlinedTextField(
                         value = state.username,
                         onValueChange = { state.username = it },
-                        leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Username") },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Nom d'utilisateur") },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Username") }
+                        label = { Text("Nom d'utilisateur") }
                     )
 
                     // Email Field
@@ -131,9 +126,9 @@ class Register {
                         value = state.email,
                         onValueChange = { state.email = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        leadingIcon = { Icon(imageVector = Icons.Filled.Email, contentDescription = "Email") },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Email, contentDescription = "Adresse e-mail") },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Email") }
+                        label = { Text("Adresse e-mail") }
                     )
 
                     // Password Field
@@ -141,9 +136,9 @@ class Register {
                         value = state.password,
                         onValueChange = { state.password = it },
                         visualTransformation = PasswordVisualTransformation(),
-                        leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Password") },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Mot de passe") },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Password") }
+                        label = { Text("Mot de passe") }
                     )
 
                     // Confirm Password Field
@@ -151,9 +146,9 @@ class Register {
                         value = state.confirmPassword,
                         onValueChange = { viewModel.onConfirmPasswordChanged(it)},
                         visualTransformation = PasswordVisualTransformation(),
-                        leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Confirm Password") },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Confirmer le mot de passe") },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Confirm Password") }
+                        label = { Text("Confirmer le mot de passe") }
                     )
 
                     // Gender Dropdown
@@ -167,9 +162,9 @@ class Register {
                         value = state.birthday,
                         onValueChange = { viewModel.onBirthdayChanged(it)},
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        leadingIcon = { Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Date of Birth") },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Date de naissance") },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Date of Birth") }
+                        label = { Text("Date de naissance ") }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -181,20 +176,20 @@ class Register {
                                 onRegisterSuccess = TODO(),
                                 onRegisterFailed = TODO()
                             )
-                                    Log.i("FireBaseRegister", "SignUp Successful")
-                                    navController.navigate("LoginScreen")
+                            Log.i("FireBaseRegister", "Inscription réussie")
+                            navController.navigate("LoginScreen")
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
                     ) {
-                        Text("Sign Up", color = Color.White)
+                        Text("S'inscrire", color = Color.White)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Already have an account?
                     Text(
-                        text = "Already have an account? Sign In",
+                        text = "Vous avez déjà un compte ? Se connecter",
                         color = Color.Blue,
                         fontSize = 14.sp,
                         modifier = Modifier.clickable {
@@ -204,12 +199,15 @@ class Register {
                 }
             }
         }
+                }
+            }
+
 
         @OptIn(ExperimentalMaterial3Api::class)
         @Composable
         fun GenderDropdown(selectedGender: String, onGenderSelected: (String) -> Unit) {
             var isExpanded by remember { mutableStateOf(false) }
-            val genders = listOf("Male", "Female", "Other")
+            val genders = listOf("Homme", "Femme", "Autre")
 
             ExposedDropdownMenuBox(
                 expanded = isExpanded,
@@ -219,7 +217,7 @@ class Register {
                     value = selectedGender,
                     onValueChange = {},
                     readOnly = true,
-                    leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Gender") },
+                    leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Genre") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
@@ -246,7 +244,7 @@ class Register {
         @Composable
         fun CountryDropdown(selectedCountry: String, onCountrySelected: (String) -> Unit) {
             var isExpanded by remember { mutableStateOf(false) }
-            val countries = listOf("Tunisia", "France", "Canada", "USA", "Germany", "Other")
+            val countries = listOf("Tunisie", "France", "Canada", "USA", "Allemagne", "Autre")
 
             ExposedDropdownMenuBox(
                 expanded = isExpanded,
@@ -256,14 +254,14 @@ class Register {
                     value = selectedCountry,
                     onValueChange = {},
                     readOnly = true,
-                    leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Country") },
+                    leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Pays") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .menuAnchor(),
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
                     },
-                    label = { Text("Country") }
+                    label = { Text("Pays") }
                 )
                 ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
                     countries.forEach { country ->
@@ -278,5 +276,4 @@ class Register {
                 }
             }
         }
-    }
-}
+

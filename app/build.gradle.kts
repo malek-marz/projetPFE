@@ -39,8 +39,9 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.material3.v110) // For Material3 components (including CircularProgressIndicator)
+    implementation ("androidx.compose.foundation:foundation:1.5.0")
     implementation(libs.androidx.material)
+    implementation ("com.google.accompanist:accompanist-flowlayout:0.30.1")
     implementation(libs.androidx.material.icons.extended) // For material icons
     implementation(libs.material3) // For material3 components (like Button, TextField)
     implementation(libs.androidx.core.ktx)
@@ -48,6 +49,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
+    implementation ("androidx.compose.foundation:foundation:1.4.3")
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
@@ -56,6 +58,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
+    implementation ("com.google.accompanist:accompanist-pager:0.30.1")
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
 
