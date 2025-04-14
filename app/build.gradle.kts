@@ -62,6 +62,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     // navigation
     implementation(libs.compose.navigation)
+    implementation("com.google.accompanist:accompanist-flowlayout:0.28.0")
+
     // room
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
