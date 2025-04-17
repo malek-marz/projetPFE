@@ -115,7 +115,7 @@ class Register {
                     // Username Field
                     OutlinedTextField(
                         value = state.username,
-                        onValueChange = { state.username = it },
+                        onValueChange = { viewModel.onUsernameChanged(it) },
                         leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Nom d'utilisateur") },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Nom d'utilisateur") }
@@ -124,7 +124,7 @@ class Register {
                     // Email Field
                     OutlinedTextField(
                         value = state.email,
-                        onValueChange = { state.email = it },
+                        onValueChange = { viewModel.onEmailChanged(it) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         leadingIcon = { Icon(imageVector = Icons.Filled.Email, contentDescription = "Adresse e-mail") },
                         modifier = Modifier.fillMaxWidth(),
@@ -134,7 +134,7 @@ class Register {
                     // Password Field
                     OutlinedTextField(
                         value = state.password,
-                        onValueChange = { state.password = it },
+                        onValueChange = { viewModel.onPasswordChanged(it) },
                         visualTransformation = PasswordVisualTransformation(),
                         leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Mot de passe") },
                         modifier = Modifier.fillMaxWidth(),
