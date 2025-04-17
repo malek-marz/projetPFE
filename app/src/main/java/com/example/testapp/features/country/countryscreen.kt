@@ -112,13 +112,13 @@ fun CountryItem(country: String, selected: Boolean, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Image du pays (tu peux remplacer cette ressource par l'image réelle du pays)
-            Image(
+            /*Image(
                 painter = painterResource(id = R.drawable.ic_country_image), // Remplace par l'image correspondante
                 contentDescription = null,
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
-            )
+            )*/
 
             Spacer(modifier = Modifier.width(16.dp))
 

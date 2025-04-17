@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.R
+import com.example.testapp.features.Buddys.Buddy
 
 private val LightestBlue = Color(0xFFF5F9FF)
 private val LightBlue = Color(0xFFE8F0FE)
@@ -76,7 +77,7 @@ class Home {
                                 navController.navigate("askBuddyRoute")
                             }
                             ButtonSquare("FindBuddy", R.drawable.meow) {
-                                navController.navigate("findBuddyRoute")
+                                navController.navigate(Buddy.buddyRoute)
                             }
                         }
                         Spacer(modifier = Modifier.height(20.dp))

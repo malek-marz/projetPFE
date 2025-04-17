@@ -8,13 +8,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
+// TODO: fix gender and country
+// TODO: add error state to password and confirm password
 class RegisterViewModel (): ViewModel() {
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state
 
     fun register(onRegisterSuccess: () -> Unit, onRegisterFailed: (String) -> Unit) {
         if (!validateRegisterModel(state.value)) {
-            onRegisterFailed("Veuillez vérifier les informations fournies.")
+            onRegisterFailed("Veuillez vérifier les informations fournies. ${state.value}")
             return
         }
 

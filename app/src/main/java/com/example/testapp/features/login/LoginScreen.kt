@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.testapp.features.homescreen.Home
 
 class Login {
     companion object {
@@ -126,7 +127,7 @@ class Login {
                     val darkBlue = Color(0xFF00008B)
 
                     Button(
-                        onClick = { viewModel.login { navController.navigate("HomeScreen") }},
+                        onClick = { viewModel.login { navController.navigate(Home.homeScreenRoute) }},
 
                         modifier = Modifier
                             .fillMaxWidth()

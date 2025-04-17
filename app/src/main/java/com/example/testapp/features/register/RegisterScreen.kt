@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.testapp.R.drawable.logo
+import com.example.testapp.features.homescreen.Home
+import com.example.testapp.features.login.Login
 import com.example.yourapp.model.RegisterViewModel
 
 class Register {
@@ -173,11 +175,14 @@ class Register {
                     Button(
                         onClick = {
                             viewModel.register(
-                                onRegisterSuccess = TODO(),
-                                onRegisterFailed = TODO()
+                                onRegisterSuccess = {
+                                    navController.navigate(Login.LoginScreenRoute)
+                                    Log.i("FireBaseRegister", "Inscription réussie")
+                                },
+                                onRegisterFailed = {
+                                    Log.e("FireBaseRegister", it)
+                                }
                             )
-                            Log.i("FireBaseRegister", "Inscription réussie")
-                            navController.navigate("LoginScreen")
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
