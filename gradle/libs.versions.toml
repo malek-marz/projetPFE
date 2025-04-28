@@ -21,6 +21,10 @@ firebase-bom= "32.1.1"
 firebaseDatabaseKtx = "21.0.0"
 supportAnnotations = "28.0.0"
 mediationTestSuite = "3.0.0"
+firebaseAuth = "23.2.0"
+credentials = "1.5.0"
+credentialsPlayServicesAuth = "1.5.0"
+googleid = "1.1.1"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "materialIconsExtended" }
@@ -54,6 +58,10 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx" }
 support-annotations = { group = "com.android.support", name = "support-annotations", version.ref = "supportAnnotations" }
 mediation-test-suite = { group = "com.google.android.ads", name = "mediation-test-suite", version.ref = "mediationTestSuite" }
+google-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 
 
 [plugins]

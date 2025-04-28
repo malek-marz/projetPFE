@@ -62,6 +62,10 @@ dependencies {
     implementation(libs.androidx.espresso.core)
     implementation(libs.support.annotations)
     implementation(libs.mediation.test.suite)
+    implementation(libs.google.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     // Testing dependencies
     testImplementation(libs.junit)
