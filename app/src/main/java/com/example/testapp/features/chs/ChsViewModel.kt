@@ -1,36 +1,43 @@
 package com.example.testapp.features.chs
 
+import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import com.example.testapp.features.chs.model.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-class ChsViewModel  : ViewModel() {
-    private val firebaseDatabase = Firebase.database
-    private val _channels = MutableStateFlow<List<Channel>>(emptyList())
-    val channels = _channels.asStateFlow()
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.flow.asStateFlow
+import com.example.testapp.features.chs.Channel
+import androidx.compose.runtime.*
+import com.google.firebase.firestore.FirebaseFirestore
+
+class ChsViewModel : ViewModel() {
+
+    private val db = FirebaseFirestore.getInstance()
+
+    var usernames by mutableStateOf(listOf<String>())
+        private set
 
     init {
-        getChannels()
+        fetchUsers()
     }
 
-    private fun getChannels() {
-        firebaseDatabase.getReference("channel").get().addOnSuccessListener {
-            val list = mutableListOf<Channel>()
-            it.children.forEach { data ->
-                val channel = Channel(data.key!!, data.value.toString())
-                list.add(channel)
+    private fun fetchUsers() {
+        db.collection("users")
+            .get()
+            .addOnSuccessListener { result ->
+                val userList = mutableListOf<String>()
+                for (document in result) {
+                    val username = document.getString("username")
+                    username?.let { userList.add(it) }
+                }
+                usernames = userList
             }
-            _channels.value = list
-        }
-    }
-
-    fun addChannel(name: String) {
-        val key = firebaseDatabase.getReference("channel").push().key
-        firebaseDatabase.getReference("channel").child(key!!).setValue(name).addOnSuccessListener {
-            getChannels()
-        }
+            .addOnFailureListener { exception ->
+                Log.w("Firestore", "Error getting documents: ", exception)
+            }
     }
 }
