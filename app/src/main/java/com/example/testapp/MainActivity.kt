@@ -10,16 +10,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.features.Buddys.Buddy
+import com.example.testapp.features.chs.Chs
+import com.example.testapp.features.chs.Chs.Companion.ChsScreen
 import com.example.testapp.features.homescreen.Home
 import com.example.testapp.features.login.Login
+import com.example.testapp.features.profileUser.ProfileUserScreen
+import com.example.testapp.features.profileUser.User
 import com.example.testapp.features.register.Register
 import com.example.testapp.features.splash.Splash
 import com.example.testapp.ui.theme.TestAppTheme
 import com.google.firebase.FirebaseApp
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Firebase.database
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
         setContent {
@@ -30,6 +38,8 @@ class MainActivity : ComponentActivity() {
                 composable(Register.RegisterScreenRoute) { Register.RegisterScreen(navController) }
                 composable(Home.homeScreenRoute) { Home.homeScreen(navController) }
                 composable(Buddy.buddyRoute) { Buddy.buddy(navController) }
+                composable(Chs.ChsRoute) { ChsScreen(navController) }
+                composable(ProfileUserScreen.profileUserScreenRoute) { ProfileUserScreen.profileUser(navController) }
             }
         }
     }
