@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.testapp.R.drawable.logo
+import com.example.testapp.features.homescreen.Home
+import com.example.testapp.features.login.Login
 import com.example.yourapp.model.RegisterViewModel
 
 class Register {
@@ -173,11 +175,14 @@ class Register {
                     Button(
                         onClick = {
                             viewModel.register(
-                                onRegisterSuccess = TODO(),
-                                onRegisterFailed = TODO()
+                                onRegisterSuccess = {
+                                    navController.navigate(Login.LoginScreenRoute)
+                                    Log.i("FireBaseRegister", "Inscription réussie")
+                                },
+                                onRegisterFailed = {
+                                    Log.e("FireBaseRegister", it)
+                                }
                             )
-                            Log.i("FireBaseRegister", "Inscription réussie")
-                            navController.navigate("LoginScreen")
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
@@ -199,81 +204,80 @@ class Register {
                 }
             }
         }
-                }
-            }
+    }
+}
 
 
-        @OptIn(ExperimentalMaterial3Api::class)
-        @Composable
-        fun GenderDropdown(selectedGender: String, onGenderSelected: (String) -> Unit) {
-            var isExpanded by remember { mutableStateOf(false) }
-            val genders = listOf("Homme", "Femme", "Autre")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GenderDropdown(selectedGender: String, onGenderSelected: (String) -> Unit) {
+    var isExpanded by remember { mutableStateOf(false) }
+    val genders = listOf("Homme", "Femme", "Autre")
 
-            ExposedDropdownMenuBox(
-                expanded = isExpanded,
-                onExpandedChange = { isExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = selectedGender,
-                    onValueChange = {},
-                    readOnly = true,
-                    leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Genre") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
-                    },
-                    label = { Text("Gender") }
-                )
-                ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
-                    genders.forEach { gender ->
-                        DropdownMenuItem(
-                            text = { Text(gender) },
-                            onClick = {
-                                onGenderSelected(gender)
-                                isExpanded = false
-                            }
-                        )
+    ExposedDropdownMenuBox(
+        expanded = isExpanded,
+        onExpandedChange = { isExpanded = it }
+    ) {
+        OutlinedTextField(
+            value = selectedGender,
+            onValueChange = {},
+            readOnly = true,
+            leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Genre") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
+            },
+            label = { Text("Gender") }
+        )
+        ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
+            genders.forEach { gender ->
+                DropdownMenuItem(
+                    text = { Text(gender) },
+                    onClick = {
+                        onGenderSelected(gender)
+                        isExpanded = false
                     }
-                }
+                )
             }
         }
+    }
+}
 
-        @OptIn(ExperimentalMaterial3Api::class)
-        @Composable
-        fun CountryDropdown(selectedCountry: String, onCountrySelected: (String) -> Unit) {
-            var isExpanded by remember { mutableStateOf(false) }
-            val countries = listOf("Tunisie", "France", "Canada", "USA", "Allemagne", "Autre")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CountryDropdown(selectedCountry: String, onCountrySelected: (String) -> Unit) {
+    var isExpanded by remember { mutableStateOf(false) }
+    val countries = listOf("Tunisie", "France", "Canada", "USA", "Allemagne", "Autre")
 
-            ExposedDropdownMenuBox(
-                expanded = isExpanded,
-                onExpandedChange = { isExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = selectedCountry,
-                    onValueChange = {},
-                    readOnly = true,
-                    leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Pays") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
-                    },
-                    label = { Text("Pays") }
-                )
-                ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
-                    countries.forEach { country ->
-                        DropdownMenuItem(
-                            text = { Text(country) },
-                            onClick = {
-                                onCountrySelected(country)
-                                isExpanded = false
-                            }
-                        )
+    ExposedDropdownMenuBox(
+        expanded = isExpanded,
+        onExpandedChange = { isExpanded = it }
+    ) {
+        OutlinedTextField(
+            value = selectedCountry,
+            onValueChange = {},
+            readOnly = true,
+            leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Pays") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
+            },
+            label = { Text("Pays") }
+        )
+        ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
+            countries.forEach { country ->
+                DropdownMenuItem(
+                    text = { Text(country) },
+                    onClick = {
+                        onCountrySelected(country)
+                        isExpanded = false
                     }
-                }
+                )
             }
         }
-
+    }
+}
