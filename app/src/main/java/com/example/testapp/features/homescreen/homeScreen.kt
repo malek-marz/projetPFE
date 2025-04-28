@@ -1,12 +1,15 @@
 package com.example.testapp.features.homescreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -18,13 +21,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.R
-import com.example.testapp.features.Buddys.Buddy
 
-private val LightestBlue = Color(0xFFF5F9FF)
+private val LightestGray = Color(0xFFF8F8F8)
+private val LightGray = Color(0xFFE0E0E0)
+private val PrimaryBlue = Color(0xFF1565C0)
+private val MediumGray = Color(0xFFBDBDBD)
+private val DarkGray = Color(0xFF424242)
+private val LightestBlue = Color.White
 private val LightBlue = Color(0xFFE8F0FE)
-private val MediumBlue = Color(0xFF4D8FCC)
+private val coulaire = Color(0xFF8DBAEC)
 private val DarkBlue = Color(0xFF255A9D)
 private val White = Color.White
+
 class Home {
     companion object {
         const val homeScreenRoute = "homeScreen"
@@ -33,7 +41,6 @@ class Home {
         fun homeScreen(navController: NavController, viewModel: HomeScreenViewModel = viewModel()) {
             val state by viewModel.state.collectAsState()
 
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -41,60 +48,86 @@ class Home {
                         Brush.verticalGradient(
                             colors = listOf(LightestBlue, LightBlue)
                         )
-                    ),
-                contentAlignment = Alignment.TopCenter
+                    )
             ) {
-                Column(
+                // User profile button
+                UserButton(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    navController = navController
+                )
+
+                // Main content (note card in top-left)
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(30.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
+                        .padding(top = 70.dp, start = 30.dp, end = 30.dp)
                 ) {
-                    Text(
-                        text = "Welcome!",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue
-                    )
+                    var noteText by remember { mutableStateOf("") }
 
-                    Text(
-                        text = "How can we help you?",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MediumBlue,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(200.dp))
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Note Card with smaller size and aligned top-left
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = LightBlue),
+                        modifier = Modifier
+                            .width(250.dp) // Set a smaller width for the card
+                            .height(80.dp) // Set a smaller height for the card
+                            .padding(8.dp)
+                            .align(Alignment.TopStart), // Align top-left of the Box
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            ButtonSquare("AskBuddy", R.drawable.amies) {
-                                navController.navigate("askBuddyRoute")
+                            // User avatar icon
+                            Surface(
+                                shape = CircleShape,
+                                modifier = Modifier.size(36.dp),
+                                color = LightBlue,
+                                shadowElevation = 4.dp
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.user),
+                                    contentDescription = "User Avatar",
+                                    tint = DarkBlue,
+                                    modifier = Modifier.padding(6.dp)
+                                )
                             }
-                            ButtonSquare("FindBuddy", R.drawable.meow) {
-                                navController.navigate(Buddy.buddyRoute)
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            ButtonSquare("Friends", R.drawable.amies) {
-                                navController.navigate("friendsRoute")
-                            }
-                            ButtonSquare("Map", R.drawable.img2) {
-                                navController.navigate("mapRoute")
-                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // TextField for note input
+                            TextField(
+                                value = noteText,
+                                onValueChange = { noteText = it },
+                                placeholder = { Text("Écris quelque chose...") },
+                                singleLine = false, // Permet plusieurs lignes
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
+                                    cursorColor = DarkBlue,
+                                    focusedIndicatorColor = DarkBlue,
+                                    unfocusedIndicatorColor = MediumGray
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()  // Assure que le champ occupe toute la largeur
+                                    .heightIn(min = 60.dp)  // Hauteur minimale pour s'assurer qu'on voit bien le texte
+                                    .padding(8.dp), // Ajout de padding pour que le texte soit visible
+                                maxLines = 5, // Maximum de 5 lignes
+                                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp) // Taille de police ajustée pour être plus visible
+                            )
+
+
                         }
                     }
                 }
 
+                // Bottom navigation buttons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -103,32 +136,40 @@ class Home {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     HomeButton(Modifier.weight(1f), navController)
-                    UserButton(Modifier.weight(1f), navController)
                     MessageButton(Modifier.weight(1f), navController)
                 }
             }
         }
     }
 }
+
 @Composable
-fun ButtonSquare(text: String, iconRes: Int, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.size(140.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MediumBlue),
-        elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 6.dp)
+fun UserButton(modifier: Modifier, navController: NavController) {
+    Column(
+        modifier = modifier
+            .background(color = White, shape = RoundedCornerShape(16.dp))
+            .border(1.dp, LightGray, shape = RoundedCornerShape(16.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        IconButton(
+            onClick = {
+                navController.navigate("profileUserScreenRoute")
+            }
+        ) {
             Icon(
-                painter = painterResource(id = iconRes),
-                contentDescription = text,
-                modifier = Modifier.size(40.dp),
-                tint = White
+                painter = painterResource(id = R.drawable.user),
+                contentDescription = "Profil",
+                tint = PrimaryBlue,
+                modifier = Modifier.size(35.dp)
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(text = text, color = White, fontWeight = FontWeight.Bold)
         }
+        Text(
+            text = "Profil",
+            fontSize = 15.sp,
+            color = PrimaryBlue,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -140,33 +181,37 @@ fun HomeButton(modifier: Modifier, navController: NavController) {
 }
 
 @Composable
-fun UserButton(modifier: Modifier, navController: NavController) {
-    BottomNavButton(modifier, R.drawable.user, "User", MediumBlue) {
-        navController.navigate("userRoute")
-    }
-}
-
-@Composable
 fun MessageButton(modifier: Modifier, navController: NavController) {
     BottomNavButton(modifier, R.drawable.message, "Message", DarkBlue) {
-        navController.navigate("messageRoute")
+        navController.navigate("ChsRoute")
     }
 }
 
 @Composable
-fun BottomNavButton(modifier: Modifier, iconRes: Int, contentDesc: String, color: Color, onClick: () -> Unit) {
+fun BottomNavButton(
+    modifier: Modifier,
+    iconRes: Int,
+    contentDesc: String,
+    color: Color,
+    onClick: () -> Unit
+) {
     Button(
         onClick = onClick,
-        modifier = modifier.size(70.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = color),
-        elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 6.dp)
+        modifier = modifier
+            .height(60.dp)
+            .padding(horizontal = 8.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = coulaire,
+            contentColor = color
+        ),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
     ) {
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = contentDesc,
-            modifier = Modifier.size(38.dp),
-            tint = White
+            modifier = Modifier.size(28.dp),
+            tint = DarkBlue
         )
     }
 }
