@@ -29,12 +29,12 @@ class Buddy {
         fun buddy(navController: NavController, viewModel: buddyViewModel = viewModel()) {
             val state by viewModel.state.collectAsState()
 
-            // Sexe
+
             val sexOptions = listOf("Homme", "Femme", "Peu importe")
             var selectedSex by remember { mutableStateOf("Choisir le sexe") }
             var sexExpanded by remember { mutableStateOf(false) }
 
-            // Âge
+
             val ageOptions = (18..90).toList()
             val selectedAges = remember { mutableStateMapOf<Int, Boolean>() }
             var ageExpanded by remember { mutableStateOf(false) }
@@ -47,7 +47,7 @@ class Buddy {
                 .joinToString(", ")
                 .ifEmpty { "Choisir les âges" }
 
-            // Descriptions / Critères recherchés
+
             val descriptionOptions = listOf(
                 "Aime voyager", "Non-fumeur", "Parle anglais", "Flexible", "Végétarien(ne)",
                 "Sportif(ve)", "Respectueux(se)", "Sociable", "Ponctuel(le)", "Organisé(e)",
@@ -59,25 +59,24 @@ class Buddy {
 
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = Color(0xFFF1F1F1) // Un fond clair avec un léger contraste
+                color = Color(0xFFF1F1F1)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Titre
+
                     Text(
                         text = "Trouvez un Partenaire",
                         style = MaterialTheme.typography.h5.copy(fontSize = 15.sp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 5.dp), // Réduit l'espace en haut
+                            .padding(top = 5.dp),
                         color = MaterialTheme.colors.primary,
                         textAlign = TextAlign.Center
                     )
 
-                    // Sexe préféré
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -110,7 +109,6 @@ class Buddy {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Âges préférés
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -149,7 +147,7 @@ class Buddy {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Critères recherchés sous forme de boutons
+
                     Text("Critères recherchés", style = MaterialTheme.typography.subtitle1)
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -175,13 +173,13 @@ class Buddy {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Bouton de validation
+
                     Button(
                         onClick = {
                             val selectedAgesList = selectedAges.filter { it.value }.keys.sorted()
                             val selectedCriteriaSet = selectedDescriptions.filter { it.value }.keys.toSet()
 
-                            // Appeler la fonction du ViewModel pour trouver des utilisateurs compatibles
+
                             viewModel.findCompatibleUsers(
                                 selectedSex = selectedSex,
                                 selectedAges = selectedAgesList,
