@@ -1,4 +1,4 @@
-package com.example.testapp.model
+package com.example.testapp.features.country
 
 data class CountryData(
     val name: String,

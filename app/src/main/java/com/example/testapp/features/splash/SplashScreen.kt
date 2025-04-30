@@ -22,8 +22,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.text.font.FontWeight
 import com.example.testapp.R
-import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.Color.Companion.Gray
+
+import com.example.testapp.presentation.country.CountryNav
 
 
 class Splash {
@@ -113,13 +113,32 @@ class Splash {
                     ) {
                         Text("Creat account", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
+                    Button(
+                        onClick = {navController.navigate(CountryNav.CountryScreenRoute)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(60.dp)
+                            .graphicsLayer(
+                                shadowElevation = 8f, // Fixed: Use Float instead of Dp
+                                shape = RoundedCornerShape(16.dp),
+                                clip = false
+                            ),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF03326B),  // Darker blue
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Test ai", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
 
     }
 
-    }
+}
 
 
 @Preview(device = "id:Nexus S")@Composable
@@ -127,4 +146,3 @@ private fun SplashPreviewPhone() {
     val navController = rememberNavController()
     Splash.SplashScreen(navController)
 }
-

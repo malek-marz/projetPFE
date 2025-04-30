@@ -17,6 +17,14 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Ajout de la clé API dans les buildConfigFields
+        buildConfigField("String", "API_KEY", "\"AIzaSyDlQiusEchlTg8jq6_SrW1nWG2-epihOj8\"")
+    }
+
+    buildFeatures {
+        buildConfig = true // Assurez-vous que la génération de BuildConfig est activée
+        compose = true
     }
 
     buildTypes {
@@ -37,10 +45,6 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
@@ -58,11 +62,9 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.4.3")
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.espresso.core)
     implementation(libs.support.annotations)
     implementation(libs.mediation.test.suite)
-    implementation(libs.google.firebase.auth)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
@@ -88,7 +90,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
     implementation(libs.converter.gson)
 
-
     // Accompanist for pager and flow layout
     implementation("com.google.accompanist:accompanist-pager:0.30.1")
     androidTestImplementation(libs.androidx.ui.test.junit4)
@@ -104,15 +105,10 @@ dependencies {
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
 
+    // AI dependencies
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
     // Firebase dependencies
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
-    // Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
-// Pour les images, utilise Glide
-    implementation("com.github.bumptech.glide:glide:4.12.0")
-    ksp("com.github.bumptech.glide:ksp:4.12.0")
-
 }

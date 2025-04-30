@@ -1,17 +1,45 @@
 package com.example.testapp.presentation.country
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import kotlinx.serialization.json.*
-import com.example.testapp.model.CountryData
+import androidx.lifecycle.viewModelScope
+import com.example.testapp.features.country.CountryData
 import com.example.testapp.network.*
+import com.google.ai.client.generativeai.GenerativeModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.State
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.State
 
 class CountryViewModel : ViewModel() {
 
+    private val apiKey = "AIzaSyBt-LuJCBIFp4_2Xrl92SQIoi0VZq5Qklk"
+    private val generativeModel = GenerativeModel(
+        modelName = "gemini-1.5-flash",
+        apiKey = apiKey
+    )
+
+    private val _generatedText = MutableStateFlow<String?>(null)
+    val generatedText: StateFlow<String?> = _generatedText
+
+    fun generateText(prompt: String) {
+        viewModelScope.launch {
+            try {
+                val response = generativeModel.generateContent(prompt)
+                _generatedText.value = response.text
+            } catch (e: Exception) {
+                _generatedText.value = "Erreur: ${e.message}"
+            }
+        }
+    }
+
+    // 🔹 Pour infos pays
     private val _countryData = mutableStateOf<CountryData?>(null)
     val countryData: State<CountryData?> = _countryData
 
@@ -23,9 +51,7 @@ class CountryViewModel : ViewModel() {
 
     fun fetchCountryInfoBasedOnInterests(interests: List<String>) {
         _isLoading.value = true
-        _errorMessage.value = null  // Clear any previous error message
-
-        val apiKey = "AIzaSyDlQiusEchlTg8jq6_SrW1nWG2-epihOj8"
+        _errorMessage.value = null
 
         val prompt = buildPromptBasedOnInterests(interests)
 
@@ -37,25 +63,21 @@ class CountryViewModel : ViewModel() {
             )
         )
 
-        // Utilisation de geminiService pour appeler l'API
         RetrofitClient.geminiService.getCountryDetails(request)
             .enqueue(object : Callback<GeminiResponse> {
                 override fun onResponse(call: Call<GeminiResponse>, response: Response<GeminiResponse>) {
                     _isLoading.value = false
-
                     if (response.isSuccessful) {
                         val contentText = response.body()
-                            ?.candidates
-                            ?.firstOrNull()
-                            ?.content
-                            ?.parts
-                            ?.firstOrNull()
-                            ?.text ?: ""
+                            ?.candidates?.firstOrNull()
+                            ?.content?.parts?.firstOrNull()?.text ?: ""
+
+                        Log.d("CountryViewModel", "Réponse API: $contentText")
 
                         val country = parseCountryJson(contentText)
                         _countryData.value = country
                     } else {
-                        _errorMessage.value = "Erreur lors de la récupération des données"
+                        _errorMessage.value = "Erreur lors de la récupération des données : ${response.message()}"
                     }
                 }
 
@@ -101,6 +123,7 @@ class CountryViewModel : ViewModel() {
                 landmarkUrl = json["landmarkUrl"]?.jsonPrimitive?.content ?: ""
             )
         } catch (e: Exception) {
+            Log.e("CountryViewModel", "Erreur lors du parsing JSON: ${e.message}")
             null
         }
     }
