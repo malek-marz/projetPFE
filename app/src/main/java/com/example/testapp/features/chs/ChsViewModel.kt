@@ -1,43 +1,51 @@
 package com.example.testapp.features.chs
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.MutableStateFlow
-
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.flow.asStateFlow
-import com.example.testapp.features.chs.Channel
 import androidx.compose.runtime.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class ChsViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
 
-    var usernames by mutableStateOf(listOf<String>())
-        private set
+    // Use StateFlow to manage the state of usernames
+    private val _usernames = MutableStateFlow<List<String>>(emptyList())
+    val usernames: StateFlow<List<String>> = _usernames
 
     init {
         fetchUsers()
     }
 
     private fun fetchUsers() {
-        db.collection("users")
-            .get()
-            .addOnSuccessListener { result ->
+        // Use a coroutine to fetch data from Firestore
+        viewModelScope.launch {
+            try {
+                // Perform Firestore operation asynchronously
+                val result = withContext(Dispatchers.IO) {
+                    db.collection("users").get().await()
+                }
+
+                // Extract usernames from the result
                 val userList = mutableListOf<String>()
                 for (document in result) {
                     val username = document.getString("username")
                     username?.let { userList.add(it) }
                 }
-                usernames = userList
-            }
-            .addOnFailureListener { exception ->
+
+                // Update the usernames state
+                _usernames.value = userList
+
+            } catch (exception: Exception) {
                 Log.w("Firestore", "Error getting documents: ", exception)
             }
+        }
     }
 }

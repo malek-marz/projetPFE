@@ -16,25 +16,21 @@ import androidx.compose.ui.tooling.preview.Preview
 
 class ProfileUserScreen {
     companion object {
-        const val profileUserScreenRoute = "profileUser"
-
         @Composable
-        fun profileUser(
-            navController: NavController,
-            viewModel: ProfileUserViewModel = viewModel()
-        ) {
+        fun profileUser(navController: NavController, viewModel: ProfileUserViewModel = viewModel()) {
             val state by viewModel.state.collectAsState()
 
             LaunchedEffect(Unit) {
                 viewModel.fetchUserProfile()
             }
 
-            ProfileUserContent(user = state)
+            ProfileUserContent(user = state, navController = navController)
         }
     }
 }
+
 @Composable
-fun ProfileUserContent(user: User) {
+fun ProfileUserContent(user: User, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,7 +38,7 @@ fun ProfileUserContent(user: User) {
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Text(
-            "Profil Utilisateur",
+            "Profile",
             fontSize = 26.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colors.primary
@@ -61,7 +57,7 @@ fun ProfileUserContent(user: User) {
         }
 
         Text(
-            "Critères de voyage",
+            "les critere !",
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colors.onBackground
@@ -71,6 +67,17 @@ fun ProfileUserContent(user: User) {
             items(user.criteria) { critere ->
                 Chip(text = critere)
             }
+        }
+        Text(
+            "changer vos critere ?",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colors.onBackground
+        )
+        Button(onClick = {
+            navController.navigate("ProfileScreen") // Replace with your real route name
+        }) {
+            Text("press here !")
         }
     }
 }
@@ -99,15 +106,9 @@ fun Chip(text: String) {
     }
 }
 
-@Preview(device = "id:Nexus S", showBackground = true)
+@Preview(showBackground = true)
 @Composable
 private fun UserPreviewPhone() {
     val navController = rememberNavController()
-    val mockUser = User(
-        gmail = "jean.dupont@gmail.com",
-        name = "Jean Dupont",
-        age = 30,
-        criteria = listOf("Plage", "Montagne", "Culture")
-    )
-    ProfileUserContent(user = mockUser)
+    ProfileUserScreen.profileUser(navController)
 }

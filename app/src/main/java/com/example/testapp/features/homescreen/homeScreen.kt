@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.R
+import com.google.firebase.auth.FirebaseAuth
 
 private val LightestGray = Color(0xFFF8F8F8)
 private val LightGray = Color(0xFFE0E0E0)
@@ -154,7 +155,7 @@ fun UserButton(modifier: Modifier, navController: NavController) {
     ) {
         IconButton(
             onClick = {
-                navController.navigate("profileUserScreenRoute")
+                navController.navigate("ProfileUserScreen")
             }
         ) {
             Icon(
@@ -170,6 +171,22 @@ fun UserButton(modifier: Modifier, navController: NavController) {
             color = PrimaryBlue,
             fontWeight = FontWeight.Medium
         )
+        Button(
+            onClick = {
+                FirebaseAuth.getInstance().signOut()  // Sign the user out
+                navController.navigate("SplashScreen") {  // Navigate back to the splash screen
+                    popUpTo("HomeScreen") { inclusive = true }
+                }
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(0.4f)
+                .height(50.dp)
+                .shadow(8.dp, RoundedCornerShape(12.dp)),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+        ) {
+            Text("Logout", color = Color.White, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
@@ -183,7 +200,7 @@ fun HomeButton(modifier: Modifier, navController: NavController) {
 @Composable
 fun MessageButton(modifier: Modifier, navController: NavController) {
     BottomNavButton(modifier, R.drawable.message, "Message", DarkBlue) {
-        navController.navigate("ChsRoute")
+        navController.navigate("Chs")
     }
 }
 

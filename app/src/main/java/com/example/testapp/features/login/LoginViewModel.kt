@@ -57,7 +57,7 @@ class LoginViewModel : ViewModel() {
                 } else {
                     _state.update { it.copy(errorMessage = "Échec : ${task.exception?.message}", isLoading = false) }
                 }
-                
+
             }
     }
 }

@@ -18,7 +18,6 @@ import com.example.testapp.features.Buddys.Buddy
 
 class User {
     companion object {
-        const val userRoute = "user"
 
         private val criteriaList = listOf(
             "Aime voyager", "Non-fumeur", "Parle anglais", "Flexible", "Végétarien(ne)",
