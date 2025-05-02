@@ -3,10 +3,14 @@ package com.example.testapp.network
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.Query
 
-// Service interface for Gemini API
 interface GeminiService {
 
-    @POST("v1beta2/generations:generateText")
-    fun getCountryDetails(@Body request: GeminiRequest): Call<GeminiResponse>
+    @POST("models/gemini-2.0-flash:generateContent")
+    fun getCountryDetails(
+        @Body request: GeminiRequest,
+        @Query("AIzaSyBt-LuJCBIFp4_2Xrl92SQIoi0VZq5Qklk") apiKey: String // Clé API passée comme paramètre de requête
+    ): Call<GeminiResponse>
 }
+

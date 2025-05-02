@@ -1,4 +1,7 @@
-package com.example.testapp.features.homescreen.model
+package com.example.testapp.features.homescreen
 
-class homeScreenState {
+sealed class HomeScreenState {
+    object Loading : HomeScreenState()
+    data class Success(val users: List<User>) : HomeScreenState()
+    data class Error(val message: String) : HomeScreenState()
 }

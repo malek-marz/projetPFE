@@ -8,8 +8,8 @@ import okhttp3.Request
 
 object GeminiClient {
 
-    private const val BASE_URL = "https://generativelanguage.googleapis.com/"
-    private const val API_KEY = "AIzaSyDlQiusEchlTg8jq6_SrW1nWG2-epihOj8"
+    private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBt-LuJCBIFp4_2Xrl92SQIoi0VZq5Qklk"
+    private const val API_KEY = "AIzaSyBt-LuJCBIFp4_2Xrl92SQIoi0VZq5Qklk"
 
     private val authInterceptor = Interceptor { chain ->
         val original: Request = chain.request()

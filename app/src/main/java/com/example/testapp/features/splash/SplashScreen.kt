@@ -132,6 +132,28 @@ class Splash {
                     ) {
                         Text("Test ai", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
+                    Button(
+                        onClick = {
+                            navController.navigate("home") // Changement ici : navigation vers Home
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(60.dp)
+                            .graphicsLayer(
+                                shadowElevation = 8f,
+                                shape = RoundedCornerShape(16.dp),
+                                clip = false
+                            ),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF03326B), // Couleur bleu foncé
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Aller à l'accueil", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    }
+
+
                 }
             }
         }

@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.testapp.R.drawable.logo
-import com.example.testapp.features.homescreen.Home
 import com.example.testapp.features.login.Login
 import com.example.yourapp.model.RegisterViewModel
 

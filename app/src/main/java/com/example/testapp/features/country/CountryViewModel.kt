@@ -2,13 +2,10 @@ package com.example.testapp.presentation.country
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.testapp.features.country.CountryData
 import com.example.testapp.network.*
-import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import kotlinx.serialization.json.jsonObject
@@ -16,30 +13,16 @@ import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlinx.serialization.json.Json
 
 class CountryViewModel : ViewModel() {
 
     private val apiKey = "AIzaSyBt-LuJCBIFp4_2Xrl92SQIoi0VZq5Qklk"
-    private val generativeModel = GenerativeModel(
-        modelName = "gemini-1.5-flash",
-        apiKey = apiKey
-    )
 
     private val _generatedText = MutableStateFlow<String?>(null)
     val generatedText: StateFlow<String?> = _generatedText
 
-    fun generateText(prompt: String) {
-        viewModelScope.launch {
-            try {
-                val response = generativeModel.generateContent(prompt)
-                _generatedText.value = response.text
-            } catch (e: Exception) {
-                _generatedText.value = "Erreur: ${e.message}"
-            }
-        }
-    }
-
-    // 🔹 Pour infos pays
+    // Pour infos pays
     private val _countryData = mutableStateOf<CountryData?>(null)
     val countryData: State<CountryData?> = _countryData
 
@@ -54,6 +37,7 @@ class CountryViewModel : ViewModel() {
         _errorMessage.value = null
 
         val prompt = buildPromptBasedOnInterests(interests)
+        Log.d("CountryViewModel", "Prompt généré : $prompt")
 
         val request = GeminiRequest(
             contents = listOf(
@@ -63,7 +47,7 @@ class CountryViewModel : ViewModel() {
             )
         )
 
-        RetrofitClient.geminiService.getCountryDetails(request)
+        RetrofitClient.geminiService.getCountryDetails(request, apiKey)
             .enqueue(object : Callback<GeminiResponse> {
                 override fun onResponse(call: Call<GeminiResponse>, response: Response<GeminiResponse>) {
                     _isLoading.value = false
@@ -78,12 +62,14 @@ class CountryViewModel : ViewModel() {
                         _countryData.value = country
                     } else {
                         _errorMessage.value = "Erreur lors de la récupération des données : ${response.message()}"
+                        Log.e("CountryViewModel", "Erreur API : ${response.message()}")
                     }
                 }
 
                 override fun onFailure(call: Call<GeminiResponse>, t: Throwable) {
                     _isLoading.value = false
                     _errorMessage.value = "Échec de la requête : ${t.message}"
+                    Log.e("CountryViewModel", "Échec de la requête : ${t.message}")
                 }
             })
     }
@@ -109,7 +95,7 @@ class CountryViewModel : ViewModel() {
 
     private fun parseCountryJson(jsonText: String): CountryData? {
         return try {
-            val json = kotlinx.serialization.json.Json.parseToJsonElement(jsonText).jsonObject
+            val json = Json.parseToJsonElement(jsonText).jsonObject
             CountryData(
                 name = json["name"]?.jsonPrimitive?.content ?: "",
                 capital = json["capital"]?.jsonPrimitive?.content ?: "",
@@ -128,3 +114,11 @@ class CountryViewModel : ViewModel() {
         }
     }
 }
+val request = GeminiRequest(
+    contents = listOf(
+        Content(
+            parts = listOf(Part(text = "Donne-moi des détails sur la France"))
+        )
+    )
+)
+
