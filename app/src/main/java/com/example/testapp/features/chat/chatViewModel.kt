@@ -61,30 +61,12 @@ class ChatViewModel(private val context: Context) : ViewModel() {
                     }
                     _messages.value = list
                 }
-
                 override fun onCancelled(error: DatabaseError) {
                     Log.e("ChatViewModel", "Failed to load messages", error.toException())
                 }
             })
         subscribeForNotification(username)
         registerUserIdtoChannel(username)
-    }
-
-    fun getAllUserEmails(username: String, callback: (List<String>) -> Unit) {
-        val ref = db.reference.child("usernames").child(username).child("users")
-        val userIds = mutableListOf<String>()
-        ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                snapshot.children.forEach {
-                    userIds.add(it.value.toString())
-                }
-                callback.invoke(userIds)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                callback.invoke(emptyList())
-            }
-        })
     }
 
     fun registerUserIdtoChannel(username: String) {

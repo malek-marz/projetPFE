@@ -1,4 +1,3 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -27,35 +26,36 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
-    implementation (libs.androidx.foundation)
+    implementation(libs.androidx.foundation)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material)
-    implementation (libs.accompanist.flowlayout)
-    implementation(libs.androidx.material.icons.extended) // For material icons
-    implementation(libs.material3) // For material3 components (like Button, TextField)
+    implementation(libs.accompanist.flowlayout)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.material3)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
-    implementation (libs.androidx.foundation)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.google.auth.library.oauth2.http)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.espresso.core)
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.volley)
@@ -64,11 +64,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    implementation (libs.accompanist.pager)
+    implementation(libs.accompanist.pager)
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
-
     debugImplementation(libs.androidx.ui.test.manifest)
+
     // navigation
     implementation(libs.compose.navigation)
     implementation(libs.accompanist.flowlayout.v0280)
@@ -76,7 +76,8 @@ dependencies {
     // room
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
-    //firebase
+
+    // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
 }
