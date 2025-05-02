@@ -40,9 +40,10 @@ android {
 }
 
 dependencies {
-    implementation ("androidx.compose.foundation:foundation:1.5.0")
+    implementation (libs.androidx.foundation)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material)
-    implementation ("com.google.accompanist:accompanist-flowlayout:0.30.1")
+    implementation (libs.accompanist.flowlayout)
     implementation(libs.androidx.material.icons.extended) // For material icons
     implementation(libs.material3) // For material3 components (like Button, TextField)
     implementation(libs.androidx.core.ktx)
@@ -50,10 +51,10 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
-    implementation ("androidx.compose.foundation:foundation:1.4.3")
+    implementation (libs.androidx.foundation)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation("com.google.auth:google-auth-library-oauth2-http:1.18.0")
+    implementation(libs.google.auth.library.oauth2.http)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.espresso.core)
     implementation(libs.firebase.messaging.ktx)
@@ -63,14 +64,14 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    implementation ("com.google.accompanist:accompanist-pager:0.30.1")
+    implementation (libs.accompanist.pager)
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
 
     debugImplementation(libs.androidx.ui.test.manifest)
     // navigation
     implementation(libs.compose.navigation)
-    implementation("com.google.accompanist:accompanist-flowlayout:0.28.0")
+    implementation(libs.accompanist.flowlayout.v0280)
 
     // room
     implementation(libs.bundles.room)

@@ -125,7 +125,7 @@ class Chs {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { navController.navigate("chat/$username") }
+                    .clickable { navController.navigate("chat/${username}") }
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

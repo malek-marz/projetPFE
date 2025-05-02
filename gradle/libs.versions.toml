@@ -1,5 +1,9 @@
 [versions]
+accompanistFlowlayout = "0.30.1"
+accompanistFlowlayoutVersion = "0.28.0"
 agp = "8.8.0"
+foundation = "1.8.0"
+googleAuthLibraryOauth2Http = "1.19.0"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -21,10 +25,16 @@ firebaseMessagingKtx = "24.1.1"
 volley = "1.2.1"
 adsMobileSdk = "0.15.1-alpha01"
 [libraries]
+accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanistFlowlayout" }
+accompanist-flowlayout-v0280 = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanistFlowlayoutVersion" }
+accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistFlowlayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "materialIconsExtended" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-material3-v110 = { module = "androidx.compose.material3:material3", version.ref = "material3Version" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose" }
+google-auth-library-oauth2-http = { module = "com.google.auth:google-auth-library-oauth2-http", version.ref = "googleAuthLibraryOauth2Http" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
