@@ -6,6 +6,5 @@ data class Message(
     val message: String? = "",
     val createdAt: Long = System.currentTimeMillis(),
     val senderName: String = "",
-
     val messageText: String? = null,
     )

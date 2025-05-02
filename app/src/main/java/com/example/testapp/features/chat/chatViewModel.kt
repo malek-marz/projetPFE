@@ -29,7 +29,6 @@ class ChatViewModel(private val context: Context) : ViewModel() {
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages = _messages.asStateFlow()
 
-
     private val db = Firebase.database
 
     fun sendMessage(username: String, messageText: String?) {
