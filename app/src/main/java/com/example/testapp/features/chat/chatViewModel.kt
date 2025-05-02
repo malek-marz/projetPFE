@@ -1,10 +1,8 @@
 package com.codewithfk.chatter.feature.chat
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -20,18 +18,17 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.UUID
 
-class ChatViewModel(private val context: Context) : ViewModel() {
+class ChatViewModel : ViewModel() {
 
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages = _messages.asStateFlow()
 
     private val db = Firebase.database
 
-    fun sendMessage(username: String, messageText: String?) {
+    fun sendMessage(context: Context, username: String, messageText: String?) {
         val message = Message(
             db.reference.push().key ?: UUID.randomUUID().toString(),
             Firebase.auth.currentUser?.uid ?: "",
@@ -43,7 +40,7 @@ class ChatViewModel(private val context: Context) : ViewModel() {
         db.reference.child("messages").child(username).push().setValue(message)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
-                    postNotificationToUsers(username, message.senderName, messageText ?: "")
+                    postNotificationToUsers(context, username, message.senderName, messageText ?: "")
                 }
             }
     }
@@ -96,7 +93,7 @@ class ChatViewModel(private val context: Context) : ViewModel() {
             }
     }
 
-    private fun postNotificationToUsers(username: String, senderName: String, messageContent: String) {
+    private fun postNotificationToUsers(context: Context, username: String, senderName: String, messageContent: String) {
         val fcmUrl = "https://fcm.googleapis.com/v1/projects/journeybuddy-83c5e/messages:send"
         val jsonBody = JSONObject().apply {
             put("message", JSONObject().apply {
@@ -119,7 +116,7 @@ class ChatViewModel(private val context: Context) : ViewModel() {
 
             override fun getHeaders(): MutableMap<String, String> {
                 val headers = HashMap<String, String>()
-                headers["Authorization"] = "Bearer ${getAccessToken()}"
+                headers["Authorization"] = "Bearer ${getAccessToken(context)}"
                 headers["Content-Type"] = "application/json"
                 return headers
             }
@@ -128,7 +125,7 @@ class ChatViewModel(private val context: Context) : ViewModel() {
         Volley.newRequestQueue(context).add(request)
     }
 
-    private fun getAccessToken(): String {
+    private fun getAccessToken(context: Context): String {
         val inputStream = context.resources.openRawResource(R.raw.chatter_key)
         val googleCreds = GoogleCredentials.fromStream(inputStream)
             .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
