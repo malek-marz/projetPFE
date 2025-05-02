@@ -30,6 +30,7 @@ fun ChatScreen(
     viewModel: ChatViewModel = viewModel(),
     username: String
 ) {
+
     val messages by viewModel.messages.collectAsState()
     var inputText by remember { mutableStateOf("") }
 
