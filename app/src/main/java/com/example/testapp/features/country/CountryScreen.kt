@@ -5,7 +5,9 @@ package com.example.testapp.presentation.country
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -59,107 +61,109 @@ fun CountryScreen(viewModel: CountryViewModel, selectedInterests: List<String>) 
             )
         }
 
-        // Affichage du contenu en fonction de l'état de chargement
-        if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            country?.let { data ->
-                // Image de la carte
-                Image(
-                    painter = rememberAsyncImagePainter(data.mapUrl),
-                    contentDescription = "Carte du pays",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp) // Taille de l'image plus grande
-                        .clip(RoundedCornerShape(16.dp)) // Coins plus arrondis
-                )
-
-                // Espacement entre l'image et les informations
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Informations du pays : Nom, capitale, langue, etc.
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = data.name,
-                        fontSize = 32.sp, // Augmenter la taille du nom du pays
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    InfoRow(label = "Capitale:", value = data.capital)
-                    InfoRow(label = "Langue:", value = data.language)
-                    InfoRow(label = "Population:", value = data.population)
-                    InfoRow(label = "Devise:", value = data.currency)
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Affichage du drapeau
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            // Affichage du contenu en fonction de l'état de chargement
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else {
+                country?.let { data ->
+                    // Image de la carte
                     Image(
-                        painter = rememberAsyncImagePainter(data.flagUrl),
-                        contentDescription = "Drapeau",
+                        painter = rememberAsyncImagePainter(data.mapUrl),
+                        contentDescription = "Carte du pays",
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
+                            .fillMaxWidth()
+                            .height(250.dp) // Taille de l'image plus grande
+                            .clip(RoundedCornerShape(16.dp)) // Coins plus arrondis
                     )
 
+                    // Espacement entre l'image et les informations
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Section de description
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        modifier = Modifier.fillMaxWidth()
+                    // Informations du pays : Nom, capitale, langue, etc.
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start
                     ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Text(
-                                text = data.description,
-                                fontSize = 18.sp,
-                                color = Color.Black
-                            )
+                        Text(
+                            text = data.name,
+                            fontSize = 32.sp, // Augmenter la taille du nom du pays
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                            // Image de monument ou image emblématique
-                            Image(
-                                painter = rememberAsyncImagePainter(data.landmarkUrl),
-                                contentDescription = "Image emblématique",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                            )
-                        }
-                    }
+                        InfoRow(label = "Capitale:", value = data.capital)
+                        InfoRow(label = "Langue:", value = data.language)
+                        InfoRow(label = "Population:", value = data.population)
+                        InfoRow(label = "Devise:", value = data.currency)
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    // Boutons d'actions
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Button(
-                            onClick = { /* Action explorer plus */ },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                        // Affichage du drapeau
+                        Image(
+                            painter = rememberAsyncImagePainter(data.flagUrl),
+                            contentDescription = "Drapeau",
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Section de description
+                        Card(
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Explorer plus", color = Color.White)
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                Text(
+                                    text = data.description,
+                                    fontSize = 18.sp,
+                                    color = Color.Black
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                // Image de monument ou image emblématique
+                                Image(
+                                    painter = rememberAsyncImagePainter(data.landmarkUrl),
+                                    contentDescription = "Image emblématique",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                )
+                            }
                         }
 
-                        Button(
-                            onClick = { /* Action planifier voyage */ },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Boutons d'actions
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Planifier mon voyage", color = Color.White)
+                            Button(
+                                onClick = { /* Action explorer plus */ },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                            ) {
+                                Text("Explorer plus", color = Color.White)
+                            }
+
+                            Button(
+                                onClick = { /* Action planifier voyage */ },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                            ) {
+                                Text("Planifier mon voyage", color = Color.White)
+                            }
                         }
                     }
                 }

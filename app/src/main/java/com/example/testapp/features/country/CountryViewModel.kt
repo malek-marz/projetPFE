@@ -54,15 +54,19 @@ class CountryViewModel : ViewModel() {
                     if (response.isSuccessful) {
                         val contentText = response.body()
                             ?.candidates?.firstOrNull()
-                            ?.content?.parts?.firstOrNull()?.text ?: ""
+                            ?.content?.parts?.firstOrNull()?.text
+                            ?.substringAfter("```json")
+                            ?.substringBefore("```")
+                            ?: ""
 
                         Log.d("CountryViewModel", "Réponse API: $contentText")
 
                         val country = parseCountryJson(contentText)
+
                         _countryData.value = country
                     } else {
                         _errorMessage.value = "Erreur lors de la récupération des données : ${response.message()}"
-                        Log.e("CountryViewModel", "Erreur API : ${response.message()}")
+                        Log.e("CountryViewModel", "Erreur API : ${response.message()}, ${response.code()}, ${response.errorBody()}")
                     }
                 }
 
@@ -85,7 +89,7 @@ class CountryViewModel : ViewModel() {
               "currency": "",
               "population": "",
               "timezone": "",
-              "flagUrl": "[Lien direct vers le drapeau]",
+              "flagUrl": "[Lien direct vers le drapeau use this site https://www.countryflags.com]",
               "mapUrl": "[Lien direct vers la carte]",
               "description": "",
               "landmarkUrl": "[Lien direct vers un monument célèbre]"
