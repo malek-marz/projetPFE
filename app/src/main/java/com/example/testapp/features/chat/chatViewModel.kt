@@ -30,20 +30,28 @@ class ChatViewModel : ViewModel() {
 
     fun sendMessage(context: Context, username: String, messageText: String?) {
         val message = Message(
-            db.reference.push().key ?: UUID.randomUUID().toString(),
-            Firebase.auth.currentUser?.uid ?: "",
-            messageText,
-            System.currentTimeMillis(),
-            Firebase.auth.currentUser?.displayName ?: "",
+            gmail = Firebase.auth.currentUser?.email ?: "",
+            sendergmail = Firebase.auth.currentUser?.email ?: "",
+            messageText = messageText,
+            createdAt = System.currentTimeMillis(),
+            senderName = Firebase.auth.currentUser?.displayName ?: ""
         )
 
+        // Log to check if the function is called
+        Log.d("sendMessage", "sendMessage function called for user: $username with message: $messageText")
+
         db.reference.child("messages").child(username).push().setValue(message)
-            .addOnCompleteListener {
-                if (it.isSuccessful) {
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("sendMessage", "Message sent successfully to $username")
                     postNotificationToUsers(context, username, message.senderName, messageText ?: "")
+                } else {
+                    Log.e("sendMessage", "Failed to send message to $username", task.exception)
                 }
             }
     }
+
+
 
     fun listenForMessages(username: String) {
         db.getReference("messages").child(username).orderByChild("createdAt")
