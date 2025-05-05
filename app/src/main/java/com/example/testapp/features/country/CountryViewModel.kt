@@ -90,7 +90,9 @@ class CountryViewModel : ViewModel() {
               "population": "",
               "timezone": "",
               "flagUrl": "[Lien direct vers le drapeau use this site https://www.countryflags.com]",
-              "mapUrl": "[Lien direct vers la carte]",
+              "mapUrl": "[https://fr.mappy.com/plan/pays/<code-pays>]
+]
+]",
               "description": "",
               "landmarkUrl": "[Lien direct vers un monument célèbre]"
             }

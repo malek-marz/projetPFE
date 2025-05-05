@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,6 +23,14 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.ui.viewinterop.AndroidView
+import android.webkit.WebView
+import android.webkit.WebViewClient
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,9 +83,30 @@ class MainActivity : ComponentActivity() {
                             selectedInterests = listOf("Nature", "Culture")
                         )
                     }
+                    // New route for displaying the country map
+                    composable("countryMap/{countryCode}") { backStackEntry ->
+                        val countryCode = backStackEntry.arguments?.getString("countryCode") ?: "france"
+                        MapScreen(countryCode = countryCode)
+                    }
                 }
             }
         }
     }
+}
 
+@Composable
+fun MapScreen(countryCode: String) {
+    // Affichage du code du pays sélectionné
+    Text(text = "Carte du pays: $countryCode")
+
+    // WebView pour afficher la carte
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = {
+            WebView(it).apply {
+                webViewClient = WebViewClient()
+                loadUrl("https://fr.mappy.com/plan/pays/$countryCode")  // Charge la carte du pays
+            }
+        }
+    )
 }
