@@ -12,6 +12,7 @@ data class UserProfile(
     val profilePicture: String = "",
     val interests: List<String> = emptyList()
 )
+//import androidx.lifecycle.viewModelScope
 
 class ProfileScreenViewModel : ViewModel() {
 
