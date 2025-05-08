@@ -1,10 +1,8 @@
-// fichier : userViewModel.kt
-package com.example.testapp.features.USER
-
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class userViewModel : ViewModel() {
     private val _selectedCriteria = MutableStateFlow(setOf<String>())
@@ -23,8 +21,20 @@ class userViewModel : ViewModel() {
 
         db.collection("users")
             .document(userId)
-            .update(data)
+            .set(data, SetOptions.merge())
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { e -> onError(e) }
+    }
+
+    fun loadCriteriaForUser(userId: String) {
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.contains("criteria")) {
+                    val criteriaList = document.get("criteria") as? List<String> ?: emptyList()
+                    _selectedCriteria.value = criteriaList.toSet()
+                }
+            }
     }
 }

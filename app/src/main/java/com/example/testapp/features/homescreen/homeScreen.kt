@@ -1,7 +1,10 @@
 package com.example.testapp.features.homescreen
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,7 +54,6 @@ class Home {
                         )
                     )
             ) {
-                // User profile button
                 UserButton(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -59,7 +61,6 @@ class Home {
                     navController = navController
                 )
 
-                // Main content (note card in top-left)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -67,15 +68,14 @@ class Home {
                 ) {
                     var noteText by remember { mutableStateOf("") }
 
-                    // Note Card with smaller size and aligned top-left
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = LightBlue),
                         modifier = Modifier
-                            .width(250.dp) // Set a smaller width for the card
-                            .height(80.dp) // Set a smaller height for the card
+                            .width(250.dp)
+                            .height(80.dp)
                             .padding(8.dp)
-                            .align(Alignment.TopStart), // Align top-left of the Box
+                            .align(Alignment.TopStart),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Row(
@@ -84,7 +84,6 @@ class Home {
                                 .padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // User avatar icon
                             Surface(
                                 shape = CircleShape,
                                 modifier = Modifier.size(36.dp),
@@ -101,12 +100,11 @@ class Home {
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            // TextField for note input
                             TextField(
                                 value = noteText,
                                 onValueChange = { noteText = it },
                                 placeholder = { Text("Écris quelque chose...") },
-                                singleLine = false, // Permet plusieurs lignes
+                                singleLine = false,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
@@ -116,19 +114,16 @@ class Home {
                                     unfocusedIndicatorColor = MediumGray
                                 ),
                                 modifier = Modifier
-                                    .fillMaxWidth()  // Assure que le champ occupe toute la largeur
-                                    .heightIn(min = 60.dp)  // Hauteur minimale pour s'assurer qu'on voit bien le texte
-                                    .padding(8.dp), // Ajout de padding pour que le texte soit visible
-                                maxLines = 5, // Maximum de 5 lignes
-                                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp) // Taille de police ajustée pour être plus visible
+                                    .fillMaxWidth()
+                                    .heightIn(min = 60.dp)
+                                    .padding(8.dp),
+                                maxLines = 5,
+                                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
                             )
-
-
                         }
                     }
                 }
 
-                // Bottom navigation buttons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -146,6 +141,8 @@ class Home {
 
 @Composable
 fun UserButton(modifier: Modifier, navController: NavController) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .background(color = White, shape = RoundedCornerShape(16.dp))
@@ -153,39 +150,57 @@ fun UserButton(modifier: Modifier, navController: NavController) {
             .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        IconButton(
-            onClick = {
-                navController.navigate("ProfileUserScreen")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = {
+                    navController.navigate("ProfileUserScreen")
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.user),
+                    contentDescription = "Profil",
+                    tint = PrimaryBlue,
+                    modifier = Modifier.size(35.dp)
+                )
             }
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.user),
-                contentDescription = "Profil",
-                tint = PrimaryBlue,
-                modifier = Modifier.size(35.dp)
-            )
+            IconButton(
+                onClick = {
+                    expanded = !expanded
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ExpandMore,
+                    contentDescription = "Expand",
+                    tint = DarkBlue
+                )
+
+            }
         }
+
         Text(
             text = "Profil",
             fontSize = 15.sp,
             color = PrimaryBlue,
             fontWeight = FontWeight.Medium
         )
-        Button(
-            onClick = {
-                FirebaseAuth.getInstance().signOut()  // Sign the user out
-                navController.navigate("SplashScreen") {  // Navigate back to the splash screen
-                    popUpTo("HomeScreen") { inclusive = true }
-                }
-            },
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(0.4f)
-                .height(50.dp)
-                .shadow(8.dp, RoundedCornerShape(12.dp)),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-        ) {
-            Text("Logout", color = Color.White, fontWeight = FontWeight.Bold)
+
+        AnimatedVisibility(visible = expanded) {
+            Button(
+                onClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate("SplashScreen") {
+                        popUpTo("HomeScreen") { inclusive = true }
+                    }
+                },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(0.4f)
+                    .height(50.dp)
+                    .shadow(8.dp, RoundedCornerShape(12.dp)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
+                Text("Logout", color = Color.White, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

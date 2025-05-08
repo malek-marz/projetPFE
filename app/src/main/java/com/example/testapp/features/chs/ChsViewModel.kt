@@ -25,10 +25,10 @@ class ChsViewModel : ViewModel() {
     }
 
     private fun fetchUsers() {
-        // Use a coroutine to fetch data from Firestore
+
         viewModelScope.launch {
             try {
-                // Perform Firestore operation asynchronously
+
                 val result = withContext(Dispatchers.IO) {
                     db.collection("users").get().await()
                 }

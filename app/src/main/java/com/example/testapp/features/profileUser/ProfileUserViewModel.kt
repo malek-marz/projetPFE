@@ -1,5 +1,6 @@
 package com.example.testapp.features.profileUser
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -7,10 +8,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 data class User(
-    val gmail: String = "",
-    val name: String = "",
-    val age: Int = 0,
-    val criteria: List<String> = emptyList()
+    val email: String = "",
+    val username: String = "",
+    val birthday: String = "",
+    val country: String = "",
+    val gender: String = "",
+    val criteria: List<String> = emptyList() // 👈 Ajout de critères
 )
 
 class ProfileUserViewModel : ViewModel() {
@@ -21,27 +24,30 @@ class ProfileUserViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
 
     fun fetchUserProfile() {
-        val currentUserEmail = auth.currentUser?.email
+        val currentUserUid = auth.currentUser?.uid
 
-        if (currentUserEmail != null) {
-            firestore.collection("users")
-                .whereEqualTo("gmail", currentUserEmail)
+        if (currentUserUid != null) {
+            firestore.collection("users").document(currentUserUid)
                 .get()
-                .addOnSuccessListener { querySnapshot ->
-                    val document = querySnapshot.documents.firstOrNull()
-                    if (document != null) {
-                        val user = User(
-                            gmail = document.getString("gmail") ?: "",
-                            name = document.getString("name") ?: "",
-                            age = (document.getLong("age") ?: 0L).toInt(),
-                            criteria = document.get("criteria") as? List<String> ?: emptyList()
-                        )
-                        _state.value = user
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        val email = document.getString("email") ?: ""
+                        val username = document.getString("username") ?: ""
+                        val birthday = document.getString("birthday") ?: ""
+                        val country = document.getString("country") ?: ""
+                        val gender = document.getString("gender") ?: ""
+                        val criteria = document.get("criteria") as? List<String> ?: emptyList()
+
+                        _state.value = User(email, username, birthday, country, gender, criteria)
+                    } else {
+                        Log.w("Firestore", "User document does not exist.")
                     }
                 }
                 .addOnFailureListener { exception ->
-                    exception.printStackTrace()
+                    Log.e("Firestore", "Error fetching user profile", exception)
                 }
+        } else {
+            Log.w("Auth", "User not authenticated")
         }
     }
 }

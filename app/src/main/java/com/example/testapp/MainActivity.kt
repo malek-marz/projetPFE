@@ -19,6 +19,7 @@ import com.example.testapp.features.login.Login
 import com.example.testapp.features.profileUser.ProfileUserScreen
 import com.example.testapp.features.USER.User
 import com.example.testapp.features.chat.ChatScreen
+import com.example.testapp.features.login.Password
 import com.example.testapp.features.register.Register
 import com.example.testapp.features.splash.Splash
 import com.example.testapp.ui.theme.TestAppTheme
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
                 composable("ProfileUserScreen") { ProfileUserScreen.profileUser(navController) }
                 composable("ProfileScreen"){  ProfileScreen.InterestSelectionScreen(navController)}
                 composable("User"){ User.user(navController)}
+                composable("Password"){ Password.ForgotPasswordScreen(navController)}
                 composable(
                         route = "chat/{username}",
                 arguments = listOf(navArgument("username") { type = NavType.StringType })
