@@ -8,54 +8,55 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-class RegisterViewModel : ViewModel() {
-
+class RegisterViewModel() : ViewModel() {
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-
     fun register(onRegisterSuccess: () -> Unit, onRegisterFailed: (String) -> Unit) {
-        val currentState = state.value
-
-        if (!validateRegisterModel(currentState)) {
-            onRegisterFailed("Veuillez vérifier les informations fournies.")
+        if (!validateRegisterModel(state.value)) {
+            onRegisterFailed("Veuillez vérifier les informations fournies. ${state.value}")
             return
         }
 
-        auth.createUserWithEmailAndPassword(currentState.email, currentState.password)
+        val auth = FirebaseAuth.getInstance()
+        val db = FirebaseFirestore.getInstance()
+
+        // Création de l'utilisateur avec email et mot de passe
+        auth.createUserWithEmailAndPassword(state.value.email, state.value.password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid
-                    if (userId == null) {
-                        onRegisterFailed("Erreur : Impossible de récupérer l'ID utilisateur.")
-                        return@addOnCompleteListener
-                    }
+                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
 
-                    val user = mapOf(
-                        "uid" to userId,
-                        "firstName" to currentState.firstName,
-                        "lastName" to currentState.lastName,
-                        "username" to currentState.username,
-                        "email" to currentState.email,
-                        "birthday" to currentState.birthday,
-                        "gender" to currentState.gender,
-                        "country" to currentState.country,
-                        "createdAt" to System.currentTimeMillis()
-                    )
+                    // Envoi d'un email de vérification
+                    auth.currentUser?.sendEmailVerification()
+                        ?.addOnCompleteListener { verificationTask ->
+                            if (verificationTask.isSuccessful) {
+                                // Création d'un objet utilisateur à stocker dans Firestore
+                                val user = mapOf(
+                                    "firstName" to state.value.firstName,
+                                    "lastName" to state.value.lastName,
+                                    "username" to state.value.username,
+                                    "email" to state.value.email,
+                                    "birthday" to state.value.birthday,
+                                    "gender" to state.value.gender,
+                                    "country" to state.value.country
+                                )
 
-                    db.collection("users")
-                        .document(userId)
-                        .set(user)
-                        .addOnSuccessListener {
-                            onRegisterSuccess()
-                        }
-                        .addOnFailureListener { e ->
-                            onRegisterFailed("Erreur lors de l'enregistrement Firestore: ${e.localizedMessage}")
+                                // Ajout des informations dans Firestore
+                                db.collection("users").document(userId)
+                                    .set(user)
+                                    .addOnSuccessListener {
+                                        onRegisterSuccess()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        onRegisterFailed("Échec de l'inscription : ${e.localizedMessage}")
+                                    }
+                            } else {
+                                onRegisterFailed("Erreur de vérification par e-mail : ${verificationTask.exception?.message}")
+                            }
                         }
                 } else {
-                    onRegisterFailed("Erreur d'inscription: ${task.exception?.localizedMessage}")
+                    onRegisterFailed("Échec : ${task.exception?.message}")
                 }
             }
     }
@@ -101,7 +102,7 @@ fun validateRegisterModel(model: RegisterState): Boolean {
     return when {
         model.firstName.isBlank() || model.lastName.isBlank() || model.username.isBlank() ||
                 model.email.isBlank() || model.password.isBlank() || model.confirmPassword.isBlank() ||
-                model.birthday.isBlank() || model.gender.isBlank() || model.country.isBlank() -> false
+                model.birthday.isBlank() -> false
 
         model.password != model.confirmPassword -> false
 

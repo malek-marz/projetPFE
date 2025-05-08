@@ -1,68 +1,102 @@
 package com.example.testapp
 
 import android.os.Bundle
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavType
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.journeybuddy.ui.screens.ProfileScreen
-import com.example.testapp.features.Buddys.Buddy
-import com.example.testapp.features.chs.Chs
-import com.example.testapp.features.homescreen.Home
 import com.example.testapp.features.login.Login
-import com.example.testapp.features.profileUser.ProfileUserScreen
-import com.example.testapp.features.USER.User
-import com.example.testapp.features.chat.ChatScreen
-import com.example.testapp.features.login.Password
 import com.example.testapp.features.register.Register
 import com.example.testapp.features.splash.Splash
+import com.example.testapp.presentation.country.CountryNav
+import com.example.testapp.presentation.country.CountryScreen
+import com.example.testapp.presentation.country.CountryViewModel
+import com.example.testapp.repository.UserRepository
+import com.example.testapp.screens.HomeScreen
 import com.example.testapp.ui.theme.TestAppTheme
+import com.example.testapp.viewmodels.HomeViewModel
 import com.google.firebase.FirebaseApp
-import com.google.firebase.database.ktx.database
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Firebase.database
-        enableEdgeToEdge()
-        FirebaseApp.initializeApp(this)
-        setContent {
-            val navController = rememberNavController()
-            NavHost(navController = navController, startDestination = "SplashScreen") {
-                composable("SplashScreen") { Splash.SplashScreen(navController) }
-                composable(Login.LoginScreenRoute) { Login.LoginScreen(navController) }
-                composable(Register.RegisterScreenRoute) { Register.RegisterScreen(navController) }
-                composable(Home.homeScreenRoute) { Home.homeScreen(navController) }
-                composable(Buddy.buddyRoute) { Buddy.buddy(navController) }
-                composable("Chs") { Chs.ChsScreen(navController) }
-                composable("ProfileUserScreen") { ProfileUserScreen.profileUser(navController) }
-                composable("ProfileScreen"){  ProfileScreen.InterestSelectionScreen(navController)}
-                composable("User"){ User.user(navController)}
-                composable("Password"){ Password.ForgotPasswordScreen(navController)}
-                composable(
-                        route = "chat/{username}",
-                arguments = listOf(navArgument("username") { type = NavType.StringType })
-                ) { backStackEntry ->
-                val username = backStackEntry.arguments?.getString("username") ?: ""
-                ChatScreen(navController = navController, username = username)
-            }}
 
+        FirebaseApp.initializeApp(this)
+        enableEdgeToEdge()
+
+        setContent {
+            TestAppTheme {
+                val navController = rememberNavController()
+
+                NavHost(navController = navController, startDestination = Splash.SplashScreenRoute) {
+                    composable(Splash.SplashScreenRoute) {
+                        Splash.SplashScreen(navController)
+                    }
+                    composable(Login.LoginScreenRoute) {
+                        Login.LoginScreen(navController)
+                    }
+                    composable(Register.RegisterScreenRoute) {
+                        Register.RegisterScreen(navController)
+                    }
+                    composable("home") {
+                        val email = FirebaseAuth.getInstance().currentUser?.email ?: ""
+                        val firestore = Firebase.firestore
+                        val repository = UserRepository(firestore)
+                        val viewModel: HomeViewModel = viewModel()
+
+                        HomeScreen(
+                            navController = navController,
+                            currentUserEmail = email,
+                            viewModel = viewModel
+                        )
+                    }
+                    composable(CountryNav.CountryScreenRoute) {
+                        val viewModel: CountryViewModel = viewModel()
+                        CountryScreen(
+                            viewModel = viewModel,
+                            selectedInterests = listOf("Nature", "Culture")
+                        )
+                    }
+                    composable("countryMap/{countryCode}") { backStackEntry ->
+                        val countryCode = backStackEntry.arguments?.getString("countryCode") ?: "france"
+                        MapScreen(countryCode = countryCode)
+                    }
+
+                    // ✅ Nouvelle route vers l'écran de profil
+                    composable("profile") {
+                        ProfileScreen(navController = navController)
+                    }
+                }
             }
         }
     }
+}
 
-
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    TestAppTheme {
-    }
+fun MapScreen(countryCode: String) {
+    Text(text = "Carte du pays: $countryCode")
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = {
+            WebView(it).apply {
+                webViewClient = WebViewClient()
+                loadUrl("https://fr.mappy.com/plan/pays/$countryCode")
+            }
+        }
+    )
 }

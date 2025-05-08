@@ -6,11 +6,6 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObject
 
-data class UserProfile(
-    val name: String = "",
-    val email: String = "",
-    val interests: List<String> = emptyList()
-)
 //import androidx.lifecycle.viewModelScope
 
 class ProfileScreenViewModel : ViewModel() {
