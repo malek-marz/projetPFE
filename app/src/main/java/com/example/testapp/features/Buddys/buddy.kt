@@ -1,12 +1,10 @@
 package com.example.testapp.features.Buddys
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.*
-import androidx.compose.material3.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.animateColorAsState
 
-class buddys {
+class Buddy {
     companion object {
         const val buddyRoute = "buddy"
 
@@ -31,12 +29,12 @@ class buddys {
         fun buddy(navController: NavController, viewModel: buddyViewModel = viewModel()) {
             val state by viewModel.state.collectAsState()
 
-            // Sexe
+
             val sexOptions = listOf("Homme", "Femme", "Peu importe")
             var selectedSex by remember { mutableStateOf("Choisir le sexe") }
             var sexExpanded by remember { mutableStateOf(false) }
 
-            // Âge
+
             val ageOptions = (18..90).toList()
             val selectedAges = remember { mutableStateMapOf<Int, Boolean>() }
             var ageExpanded by remember { mutableStateOf(false) }
@@ -49,7 +47,7 @@ class buddys {
                 .joinToString(", ")
                 .ifEmpty { "Choisir les âges" }
 
-            // Descriptions / Critères recherchés
+
             val descriptionOptions = listOf(
                 "Aime voyager", "Non-fumeur", "Parle anglais", "Flexible", "Végétarien(ne)",
                 "Sportif(ve)", "Respectueux(se)", "Sociable", "Ponctuel(le)", "Organisé(e)",
@@ -61,25 +59,24 @@ class buddys {
 
             Surface(
                 modifier = Modifier.fillMaxSize(),
-                color = Color(0xFFF1F1F1) // Un fond clair avec un léger contraste
+                color = Color(0xFFF1F1F1)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Titre
+
                     Text(
                         text = "Trouvez un Partenaire",
                         style = MaterialTheme.typography.h5.copy(fontSize = 15.sp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 5.dp), // Réduit l'espace en haut
+                            .padding(top = 5.dp),
                         color = MaterialTheme.colors.primary,
                         textAlign = TextAlign.Center
                     )
 
-                    // Sexe préféré
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -112,7 +109,6 @@ class buddys {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Âges préférés
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -151,7 +147,7 @@ class buddys {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Critères recherchés sous forme de boutons
+
                     Text("Critères recherchés", style = MaterialTheme.typography.subtitle1)
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -177,13 +173,13 @@ class buddys {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Bouton de validation
+
                     Button(
                         onClick = {
                             val selectedAgesList = selectedAges.filter { it.value }.keys.sorted()
                             val selectedCriteriaSet = selectedDescriptions.filter { it.value }.keys.toSet()
 
-                            // Appeler la fonction du ViewModel pour trouver des utilisateurs compatibles
+
                             viewModel.findCompatibleUsers(
                                 selectedSex = selectedSex,
                                 selectedAges = selectedAgesList,
@@ -235,5 +231,5 @@ class buddys {
 @Composable
 private fun buddyPreviewPhone() {
     val navController = rememberNavController()
-    buddys.buddy(navController)
+    Buddy.buddy(navController)
 }
