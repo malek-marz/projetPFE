@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.R
+import com.example.testapp.screens.Home
 import com.google.firebase.auth.FirebaseAuth
 
 class Splash {
@@ -35,8 +36,8 @@ class Splash {
             // 🔁 If the user is already logged in, navigate to HomeScreen
             LaunchedEffect(user) {
                 if (user != null) {
-                    navController.navigate("HomeScreen") {
-                        popUpTo("SplashScreen") { inclusive = true }
+                    navController.navigate(Home.homeScreenRoute) {
+                        popUpTo(SplashScreenRoute) { inclusive = true }
                     }
                 }
             }

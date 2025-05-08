@@ -23,7 +23,7 @@ import com.example.testapp.presentation.country.CountryNav
 import com.example.testapp.presentation.country.CountryScreen
 import com.example.testapp.presentation.country.CountryViewModel
 import com.example.testapp.repository.UserRepository
-import com.example.testapp.screens.HomeScreen
+import com.example.testapp.screens.Home
 import com.example.testapp.ui.theme.TestAppTheme
 import com.example.testapp.viewmodels.HomeViewModel
 import com.google.firebase.FirebaseApp
@@ -52,13 +52,13 @@ class MainActivity : ComponentActivity() {
                     composable(Register.RegisterScreenRoute) {
                         Register.RegisterScreen(navController)
                     }
-                    composable("home") {
+                    composable(Home.homeScreenRoute) {
                         val email = FirebaseAuth.getInstance().currentUser?.email ?: ""
                         val firestore = Firebase.firestore
                         val repository = UserRepository(firestore)
                         val viewModel: HomeViewModel = viewModel()
 
-                        HomeScreen(
+                        Home.HomeScreen(
                             navController = navController,
                             currentUserEmail = email,
                             viewModel = viewModel

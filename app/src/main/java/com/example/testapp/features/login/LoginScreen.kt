@@ -29,7 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.R
-import com.example.testapp.features.homescreen.Home
+import com.example.testapp.screens.Home
 
 class Login {
     companion object {
