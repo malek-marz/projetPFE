@@ -1,7 +1,6 @@
 package com.example.testapp.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,18 +11,17 @@ import androidx.compose.material.icons.filled.Message
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.models.FriendSuggestion
 import com.example.testapp.viewmodels.HomeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class) // Désactive l'avertissement sur les API expérimentales si nécessaire
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -35,11 +33,13 @@ fun HomeScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
 
     var showPopup by remember { mutableStateOf(false) }
+    var description by remember { mutableStateOf("") }
 
     LaunchedEffect(currentUserEmail) {
         viewModel.loadFriendSuggestions(currentUserEmail)
     }
 
+    // Affichage d'un message d'erreur si nécessaire
     if (errorMessage != null) {
         AlertDialog(
             onDismissRequest = { viewModel.clearErrorMessage() },
@@ -53,12 +53,15 @@ fun HomeScreen(
         )
     }
 
+    // Structure de l'interface utilisateur avec la barre supérieure et la barre de navigation inférieure
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("JourneyBuddy", color = Color.White) },
                 actions = {
-                    IconButton(onClick = { showPopup = true }) {
+                    IconButton(onClick = {
+                        showPopup = true
+                    }) {
                         Icon(Icons.Default.Message, contentDescription = "Notes", tint = Color.White)
                     }
                 },
@@ -75,12 +78,9 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFFBBDEFB), Color(0xFF90CAF9), Color.White)
-                    )
-                )
+                .background(Color(0xFFBBDEFB))  // Fond bleu clair
         ) {
+            // Section Friend Suggestions placée ici
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -94,11 +94,12 @@ fun HomeScreen(
                     )
                 }
 
+                // Chargement des suggestions d'amis
                 if (isLoading) {
                     item {
                         CircularProgressIndicator(
                             modifier = Modifier
-                                .align(Alignment.Center) // Utilisation de Alignment.Center pour centrer horizontalement et verticalement
+                                .align(Alignment.Center)
                                 .padding(16.dp)
                         )
                     }
@@ -117,10 +118,37 @@ fun HomeScreen(
                 }
             }
 
+            // Zone de texte centrale pour la description
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Write a description about your journey:", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    placeholder = { Text("e.g., My adventure in Paris!") },
+                    singleLine = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .background(Color.White, shape = MaterialTheme.shapes.medium)
+                        .padding(16.dp)
+                )
+            }
+
+            // Affichage du popup de note si nécessaire
             if (showPopup) {
                 NotePopup(
                     onDismiss = { showPopup = false },
-                    note = "Ahmed was last seen in Tokyo 🇯🇵"
+                    onNoteSaved = { note ->
+                        // Tu peux faire quelque chose avec la note ici, comme l'enregistrer
+                        println("Note saved: $note")
+                    }
                 )
             }
         }
@@ -128,14 +156,38 @@ fun HomeScreen(
 }
 
 @Composable
-fun NotePopup(onDismiss: () -> Unit, note: String) {
+fun NotePopup(onDismiss: () -> Unit, onNoteSaved: (String) -> Unit) {
+    var noteText by remember { mutableStateOf("") }
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("User Note") },
-        text = { Text(note) },
+        title = { Text("Write a Note") },
+        text = {
+            Column {
+                Text("Share a note about your journey!")
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = noteText,
+                    onValueChange = { noteText = it },
+                    placeholder = { Text("e.g., Just visited Tokyo 🇯🇵") },
+                    singleLine = false,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
         confirmButton = {
-            Button(onClick = onDismiss) {
-                Text("Close")
+            Button(
+                onClick = {
+                    onNoteSaved(noteText)
+                    onDismiss()
+                }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Cancel")
             }
         }
     )

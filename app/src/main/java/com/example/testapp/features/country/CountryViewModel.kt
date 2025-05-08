@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.testapp.features.country.CountryData
 import com.example.testapp.network.*
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.runtime.mutableStateOf
@@ -18,11 +19,11 @@ import kotlinx.serialization.json.Json
 class CountryViewModel : ViewModel() {
 
     private val apiKey = "AIzaSyBt-LuJCBIFp4_2Xrl92SQIoi0VZq5Qklk"
+    private val db = FirebaseFirestore.getInstance()
 
     private val _generatedText = MutableStateFlow<String?>(null)
     val generatedText: StateFlow<String?> = _generatedText
 
-    // Pour infos pays
     private val _countryData = mutableStateOf<CountryData?>(null)
     val countryData: State<CountryData?> = _countryData
 
@@ -89,10 +90,8 @@ class CountryViewModel : ViewModel() {
               "currency": "",
               "population": "",
               "timezone": "",
-              "flagUrl": "[Lien direct vers le drapeau use this site https://www.countryflags.com]",
-              "mapUrl": "[https://fr.mappy.com/plan/pays/<code-pays>]
-]
-]",
+              "flagUrl": "https://www.countryflags.com/[code-pays].png",
+              "mapUrl": "https://fr.mappy.com/plan/pays/[code-pays]",
               "description": "",
               "landmarkUrl": "[Lien direct vers un monument célèbre]"
             }
@@ -103,12 +102,12 @@ class CountryViewModel : ViewModel() {
         return try {
             val json = Json.parseToJsonElement(jsonText).jsonObject
             CountryData(
-                name = json["name"]?.jsonPrimitive?.content ?: "",
-                capital = json["capital"]?.jsonPrimitive?.content ?: "",
-                language = json["language"]?.jsonPrimitive?.content ?: "",
-                currency = json["currency"]?.jsonPrimitive?.content ?: "",
-                population = json["population"]?.jsonPrimitive?.content ?: "",
-                timezone = json["timezone"]?.jsonPrimitive?.content ?: "",
+                name = json["name"]?.jsonPrimitive?.content ?: "Inconnu",
+                capital = json["capital"]?.jsonPrimitive?.content ?: "Inconnu",
+                language = json["language"]?.jsonPrimitive?.content ?: "Inconnu",
+                currency = json["currency"]?.jsonPrimitive?.content ?: "Inconnu",
+                population = json["population"]?.jsonPrimitive?.content ?: "Inconnu",
+                timezone = json["timezone"]?.jsonPrimitive?.content ?: "Inconnu",
                 flagUrl = json["flagUrl"]?.jsonPrimitive?.content ?: "",
                 mapUrl = json["mapUrl"]?.jsonPrimitive?.content ?: "",
                 description = json["description"]?.jsonPrimitive?.content ?: "",
@@ -119,12 +118,26 @@ class CountryViewModel : ViewModel() {
             null
         }
     }
-}
-val request = GeminiRequest(
-    contents = listOf(
-        Content(
-            parts = listOf(Part(text = "Donne-moi des détails sur la France"))
-        )
-    )
-)
 
+    fun saveSelectedCountry(
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val country = _countryData.value
+        if (country == null) {
+            onFailure(Exception("Aucune donnée de pays à enregistrer."))
+            return
+        }
+
+        db.collection("savedCountries")
+            .add(country)
+            .addOnSuccessListener {
+                Log.d("CountryViewModel", "Pays enregistré avec succès.")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Log.e("CountryViewModel", "Erreur lors de l'enregistrement : ${e.message}")
+                onFailure(e)
+            }
+    }
+}

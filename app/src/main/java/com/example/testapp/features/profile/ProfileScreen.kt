@@ -1,5 +1,6 @@
 package com.example.journeybuddy.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,31 +11,60 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.flowlayout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.example.testapp.R
+
+// --- Dummy UserProfile à adapter selon ton modèle réel
+data class UserProfile(
+    val id: String, // Utilisation de l'ID plutôt que de l'email
+    val name: String,
+    val interests: List<String>
+)
+
+class ProfileViewModel : androidx.lifecycle.ViewModel() {
+    private val db = FirebaseFirestore.getInstance()
+
+    fun updateUserProfile(
+        userId: String,
+        updatedProfile: UserProfile,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        // Mise à jour dans Firestore avec l'ID utilisateur
+        db.collection("users")
+            .document(userId)
+            .set(updatedProfile)
+            .addOnSuccessListener {
+                Log.d("ProfileViewModel", "Profil mis à jour : $updatedProfile")
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                Log.e("ProfileViewModel", "Erreur lors de la mise à jour", exception)
+                onFailure(exception)
+            }
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun InterestSelectionScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = viewModel()) {
     val interests = listOf(
-        "Aviation", "Art", "Cars",
-        "Technology", "Fashion",
-        "Health care", "Geography", "Finance",
-        "Mental Health", "Programming", "Cinema", "Sports", "Travel",
-        "Gaming", "Photography", "Design", "Music"
+        "Aviation", "Art", "Cars", "Technology", "Fashion", "Health care",
+        "Geography", "Finance", "Mental Health", "Programming", "Cinema",
+        "Sports", "Travel", "Gaming", "Photography", "Design", "Music"
     )
 
     val selectedInterests = remember { mutableStateListOf<String>() }
 
-    // Icônes par défaut de Jetpack Compose
     val interestIcons = mapOf(
         "Aviation" to Icons.Default.AirplanemodeActive,
         "Art" to Icons.Default.Brush,
@@ -55,8 +85,7 @@ fun InterestSelectionScreen(navController: NavController) {
         "Music" to Icons.Default.MusicNote
     )
 
-    // Couleur personnalisée pour les boutons
-    val blueNormal = Color(0xFF2196F3) // Bleu clair
+    val blueNormal = Color(0xFF2196F3)
 
     Column(
         modifier = Modifier
@@ -97,9 +126,8 @@ fun InterestSelectionScreen(navController: NavController) {
                         contentColor = Color.Black
                     )
                 ) {
-                    // Affichage de l'icône associée à l'intérêt
                     Icon(
-                        imageVector = interestIcons[interest] ?: Icons.Default.Star, // Icône par défaut si aucune icône n'est définie
+                        imageVector = interestIcons[interest] ?: Icons.Default.Star,
                         contentDescription = "$interest icon",
                         tint = blueNormal,
                         modifier = Modifier.size(16.dp)
@@ -112,16 +140,40 @@ fun InterestSelectionScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.weight(1f))
 
+        val canContinue = selectedInterests.size >= 2
+
         Button(
             onClick = {
-                navController.navigate("next_screen") // Remplace par ta vraie route
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                val userId = currentUser?.uid // Utilisation de l'ID utilisateur plutôt que de l'email
+
+                if (userId != null && canContinue) {
+                    val updatedProfile = UserProfile(
+                        id = userId,  // Passer l'ID utilisateur
+                        name = currentUser.displayName ?: "",
+                        interests = selectedInterests.toList()
+                    )
+
+                    viewModel.updateUserProfile(
+                        userId = userId,  // Passer l'ID utilisateur à la méthode du ViewModel
+                        updatedProfile = updatedProfile,
+                        onSuccess = {
+                            navController.navigate("next_screen")
+                        },
+                        onFailure = { error ->
+                            Log.e("ProfileScreen", "Erreur lors de la mise à jour : $error")
+                        }
+                    )
+                } else {
+                    Log.w("ProfileScreen", "Utilisateur non connecté ou intérêts insuffisants.")
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = true, // Toujours activé
+            enabled = canContinue,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF03A9F4), // Bleu clair
+                containerColor = if (canContinue) Color(0xFF03A9F4) else Color.LightGray,
                 contentColor = Color.White
             ),
             shape = RoundedCornerShape(50)
@@ -133,6 +185,6 @@ fun InterestSelectionScreen(navController: NavController) {
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewInterestSelection() {
-    InterestSelectionScreen(navController = rememberNavController())
+fun PreviewProfileScreen() {
+    ProfileScreen(navController = rememberNavController())
 }

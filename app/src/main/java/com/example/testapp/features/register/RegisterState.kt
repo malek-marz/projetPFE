@@ -9,5 +9,6 @@ data class RegisterState(
     val confirmPassword: String = "",
     val birthday: String = "",
     var gender: String = "",
-    var country: String = ""
+    var country: String = "",
+    val emailVerified: Boolean = false
 )

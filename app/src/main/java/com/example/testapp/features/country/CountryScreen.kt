@@ -1,7 +1,9 @@
 package com.example.testapp.presentation.country
 
-
-
+import android.webkit.WebChromeClient
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,10 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.rememberAsyncImagePainter
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -37,8 +41,8 @@ fun CountryScreen(viewModel: CountryViewModel, selectedInterests: List<String>) 
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFEFF6FB))
-            .padding(24.dp), // Plus d'espace autour du contenu
-        verticalArrangement = Arrangement.spacedBy(16.dp) // Espacement plus grand entre les éléments
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Header avec le bouton de retour et le titre
         Row(
@@ -55,7 +59,7 @@ fun CountryScreen(viewModel: CountryViewModel, selectedInterests: List<String>) 
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Votre Destination",
-                fontSize = 26.sp, // Taille de police plus grande pour le titre
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
@@ -67,18 +71,23 @@ fun CountryScreen(viewModel: CountryViewModel, selectedInterests: List<String>) 
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
             } else {
                 country?.let { data ->
-                    // Image de la carte
-                    Image(
-                        painter = rememberAsyncImagePainter(data.mapUrl),
-                        contentDescription = "Carte du pays",
-                        contentScale = ContentScale.Crop,
+                    // Affichage de la carte via WebView
+                    AndroidView(
+                        factory = { context ->
+                            WebView(context).apply {
+                                webViewClient = WebViewClient() // Charge dans l'application
+                                webChromeClient = WebChromeClient() // Assure une expérience plus fluide
+                                loadUrl(data.mapUrl) // L'URL de la carte
+                                settings.javaScriptEnabled = true // Active JavaScript si nécessaire
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(250.dp) // Taille de l'image plus grande
-                            .clip(RoundedCornerShape(16.dp)) // Coins plus arrondis
+                            .height(250.dp) // Taille de la WebView
+                            .clip(RoundedCornerShape(16.dp)) // Coins arrondis
                     )
 
-                    // Espacement entre l'image et les informations
+                    // Espacement entre la carte et les informations
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // Informations du pays : Nom, capitale, langue, etc.
@@ -88,7 +97,7 @@ fun CountryScreen(viewModel: CountryViewModel, selectedInterests: List<String>) 
                     ) {
                         Text(
                             text = data.name,
-                            fontSize = 32.sp, // Augmenter la taille du nom du pays
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
@@ -157,13 +166,26 @@ fun CountryScreen(viewModel: CountryViewModel, selectedInterests: List<String>) 
                                 Text("Explorer plus", color = Color.White)
                             }
 
+                            val context = LocalContext.current
+
                             Button(
-                                onClick = { /* Action planifier voyage */ },
+                                onClick = {
+                                    viewModel.saveSelectedCountry(
+                                        onSuccess = {
+                                            Toast.makeText(context, "Pays enregistré avec succès", Toast.LENGTH_SHORT).show()
+                                            // Tu peux naviguer ici vers l'accueil ou une autre page
+                                        },
+                                        onFailure = { e ->
+                                            Toast.makeText(context, "Erreur : ${e.message}", Toast.LENGTH_SHORT).show()
+                                        }
+                                    )
+                                },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
                             ) {
                                 Text("Planifier mon voyage", color = Color.White)
                             }
+
                         }
                     }
                 }
@@ -177,7 +199,7 @@ fun InfoRow(label: String, value: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .padding(vertical = 4.dp) // Augmenter l'espacement entre les lignes
+            .padding(vertical = 4.dp)
     ) {
         Text(
             text = label,
@@ -197,8 +219,6 @@ fun InfoRow(label: String, value: String) {
 @Preview(showBackground = true)
 @Composable
 fun CountryScreenPreview() {
-    // Créer un viewModel pour la preview
     val viewModel: CountryViewModel = viewModel()
-    // Passer un ensemble d'intérêts d'exemple
     CountryScreen(viewModel = viewModel, selectedInterests = listOf("Nature", "Aventure"))
 }
