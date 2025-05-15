@@ -1,3 +1,5 @@
+// app/build.gradle.kts
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -23,7 +25,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
@@ -39,16 +44,18 @@ android {
     buildFeatures {
         compose = true
     }
+
     packaging {
         resources {
-            excludes += setOf(
-                "META-INF/DEPENDENCIES"
-            )
+            excludes += setOf("META-INF/DEPENDENCIES")
         }
     }
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
+
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material)
@@ -82,9 +89,6 @@ dependencies {
     // room
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
-
-    // firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
-
 }
+
+apply(plugin = "com.google.gms.google-services")

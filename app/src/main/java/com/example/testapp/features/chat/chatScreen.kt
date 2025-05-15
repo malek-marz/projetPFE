@@ -1,181 +1,117 @@
 package com.example.testapp.features.chat
 
-import androidx.compose.foundation.background
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.codewithfk.chatter.feature.chat.ChatViewModel
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    navController: NavController,
-    viewModel: ChatViewModel = viewModel(),
-    username: String
+    initialEmail: String = "",
+    viewModel: ChatViewModel = viewModel()
 ) {
-    val messages by viewModel.messages.collectAsState()
-    LaunchedEffect(Unit) {
-        viewModel.listenForMessages(username)
-    }
     val context = LocalContext.current
+    val messages by viewModel.messages.collectAsState()
+    var recipientEmail by remember { mutableStateOf(TextFieldValue(initialEmail)) }
+    var messageInput by remember { mutableStateOf(TextFieldValue("")) }
+    val userEmail = Firebase.auth.currentUser?.email ?: ""
 
-    ChatMessages(
-        username = username,
-        messages = messages,
-        onSendMessage = { message ->
-            viewModel.sendMessage(context, username, message)
+    // Listen for messages whenever recipientEmail changes (and is valid)
+    LaunchedEffect(recipientEmail.text) {
+        if (recipientEmail.text.isNotBlank() && recipientEmail.text.contains("@")) {
+            viewModel.setRecipientEmail(recipientEmail.text)
+            viewModel.listenForMessages()
         }
-    )
-}
-
-@Composable
-fun ChatMessages(
-    username: String,
-    messages: List<Message>,
-    onSendMessage: (String) -> Unit
-) {
-    val hideKeyboardController = LocalSoftwareKeyboardController.current
-    var msg by remember { mutableStateOf("") }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .padding(16.dp)
     ) {
+        OutlinedTextField(
+            value = recipientEmail,
+            onValueChange = { recipientEmail = it },
+            label = { Text("Email destinataire") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            reverseLayout = false
+                .fillMaxWidth()
         ) {
-            item {
-                // Box to wrap the title with a background
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()  // Make the background fill the width
-                        .background(Color(0xFFE3F2FD))  // Light blue background
-                        .padding(16.dp)  // Add padding for the text inside the box
-                ) {
-                    Text(
-                        text = "$username",
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        modifier = Modifier.align(Alignment.CenterStart)  // Align the text inside the box
-                    )
-                }
-            }
             items(messages) { message ->
-                ChatBubble(message)
+                val isMine = message.gmail == userEmail
+                ChatMessageItem(message = message, isMine = isMine)
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        OutlinedTextField(
+            value = messageInput,
+            onValueChange = {
+                messageInput = it
+                viewModel.setMessageText(it.text)
+            },
+            label = { Text("Votre message") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                if (recipientEmail.text.isBlank() || !recipientEmail.text.contains("@")) {
+                    Toast.makeText(context, "Email destinataire invalide", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+                if (messageInput.text.isBlank()) {
+                    Toast.makeText(context, "Message vide", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+                // No need to call setRecipientEmail here, LaunchedEffect does it automatically
+                viewModel.sendMessage(context)
+                messageInput = TextFieldValue("")
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            TextField(
-                value = msg,
-                onValueChange = { msg = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Type a message") },
-                shape = RoundedCornerShape(24.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
-                keyboardActions = KeyboardActions(onSend = {
-                    hideKeyboardController?.hide()
-                    if (msg.trim().isNotEmpty()) {
-                        onSendMessage(msg.trim())
-                        msg = ""
-                    }
-                }),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF0F0F0),
-                    unfocusedContainerColor = Color(0xFFF0F0F0),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray
-                )
-            )
-
-            IconButton(
-                onClick = {
-                    if (msg.trim().isNotEmpty()) {
-                        onSendMessage(msg.trim())
-                        msg = ""
-                        hideKeyboardController?.hide()
-                    }
-                },
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Color(0xFF4FC3F7), shape = CircleShape)
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send",
-                    tint = Color.White
-                )
-            }
+            Text("Envoyer")
         }
     }
 }
 
 @Composable
-fun ChatBubble(message: Message) {
-    val isUser = message.senderName == "You" // Adjust this condition as needed
+fun ChatMessageItem(message: Message, isMine: Boolean) {
+    val alignment = if (isMine) Arrangement.End else Arrangement.Start
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+        horizontalArrangement = alignment
     ) {
-        Column(
-            modifier = Modifier
-                .background(
-                    color = if (isUser) Color(0xFF4FC3F7) else Color(0xFFF0F0F0),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(12.dp)
-                .widthIn(max = 280.dp)
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.padding(horizontal = 8.dp)
         ) {
-            if (!isUser) {
-                Text(
-                    text = message.senderName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Black,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-            }
             Text(
-                text = message.messageText ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (isUser) Color.White else Color.Black
+                text = "${message.senderName}: ${message.messageText}",
+                modifier = Modifier.padding(8.dp),
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

@@ -24,16 +24,20 @@ import com.example.testapp.features.register.Register
 import com.example.testapp.features.splash.Splash
 import com.example.testapp.ui.theme.TestAppTheme
 import com.google.firebase.FirebaseApp
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
-
+import com.google.firebase.database.FirebaseDatabase
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Firebase.database
-        enableEdgeToEdge()
+
+        // Initialize Firebase
         FirebaseApp.initializeApp(this)
+        // Set correct region-specific URL for your Realtime Database
+        FirebaseDatabase.getInstance("https://journeybuddy-83c5e-default-rtdb.europe-west1.firebasedatabase.app")
+
+        enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
             NavHost(navController = navController, startDestination = "SplashScreen") {
@@ -44,25 +48,28 @@ class MainActivity : ComponentActivity() {
                 composable(Buddy.buddyRoute) { Buddy.buddy(navController) }
                 composable("Chs") { Chs.ChsScreen(navController) }
                 composable("ProfileUserScreen") { ProfileUserScreen.profileUser(navController) }
-                composable("ProfileScreen"){  ProfileScreen.InterestSelectionScreen(navController)}
-                composable("User"){ User.user(navController)}
-                composable("Password"){ Password.ForgotPasswordScreen(navController)}
+                composable("ProfileScreen") { ProfileScreen.InterestSelectionScreen(navController) }
+                composable("User") { User.user(navController) }
+                composable("Password") { Password.ForgotPasswordScreen(navController) }
                 composable(
-                        route = "chat/{username}",
-                arguments = listOf(navArgument("username") { type = NavType.StringType })
+                    route = "chat/{email}",
+                    arguments = listOf(navArgument("email") {
+                        type = NavType.StringType
+                    })
                 ) { backStackEntry ->
-                val username = backStackEntry.arguments?.getString("username") ?: ""
-                ChatScreen(navController = navController, username = username)
-            }}
+                    val email = backStackEntry.arguments?.getString("email") ?: ""
+                    ChatScreen(initialEmail = email)
+                }
 
             }
         }
     }
-
+}
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     TestAppTheme {
+        // Empty preview
     }
 }

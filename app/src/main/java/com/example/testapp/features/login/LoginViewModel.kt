@@ -45,8 +45,6 @@ class LoginViewModel : ViewModel() {
 
         val email = _state.value.email
         val password = _state.value.password
-        Log.i("LoginViewModel","email: $email, password: $password")
-
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {

@@ -25,11 +25,10 @@ import androidx.compose.ui.tooling.preview.Preview
 
 class Chs {
     companion object {
-
         @OptIn(ExperimentalMaterial3Api::class)
         @Composable
         fun ChsScreen(navController: NavController, viewModel: ChsViewModel = viewModel()) {
-            val allUsernames by viewModel.usernames.collectAsState()
+            val allUsernames by viewModel.emails.collectAsState()
             var searchQuery by remember { mutableStateOf("") }
 
             val filteredUsernames = remember(searchQuery, allUsernames) {
