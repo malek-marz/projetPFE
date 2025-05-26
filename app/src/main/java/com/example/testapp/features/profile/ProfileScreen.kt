@@ -3,12 +3,13 @@ package com.example.journeybuddy.ui.screens
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -20,70 +21,72 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.example.testapp.R
 
-// --- Dummy UserProfile à adapter selon ton modèle réel
-data class UserProfile(
-    val id: String, // Utilisation de l'ID plutôt que de l'email
-    val name: String,
-    val interests: List<String>
-)
-
-class ProfileViewModel : androidx.lifecycle.ViewModel() {
-    private val db = FirebaseFirestore.getInstance()
-
-    fun updateUserProfile(
-        userId: String,
-        updatedProfile: UserProfile,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        // Mise à jour dans Firestore avec l'ID utilisateur
-        db.collection("users")
-            .document(userId)
-            .set(updatedProfile)
-            .addOnSuccessListener {
-                Log.d("ProfileViewModel", "Profil mis à jour : $updatedProfile")
-                onSuccess()
-            }
-            .addOnFailureListener { exception ->
-                Log.e("ProfileViewModel", "Erreur lors de la mise à jour", exception)
-                onFailure(exception)
-            }
+class ProfileScreen {
+    companion object {
+        val ProfileScreenRoute = "profile_screen"
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = viewModel()) {
-    val interests = listOf(
-        "Aviation", "Art", "Cars", "Technology", "Fashion", "Health care",
-        "Geography", "Finance", "Mental Health", "Programming", "Cinema",
-        "Sports", "Travel", "Gaming", "Photography", "Design", "Music"
+fun ProfileScreen(
+    navController: NavController,
+    viewModel: ProfileScreenViewModel = viewModel()
+) {
+    // Regroupement des intérêts par catégorie
+    val interestsByCategory = mapOf(
+        "Type de voyage" to listOf("Road Trip", "City Break", "Nature", "Plage", "Aventure", "Culture", "Croisière", "Luxe", "Camping"),
+        "Activités touristiques" to listOf("Randonnée", "Musées", "Photographie", "Plongée", "Ski", "Safari", "Gastronomie", "Shopping"),
+        "Ambiance recherchée" to listOf("Relax", "Fête", "Romantique", "Spiritualité", "Famille", "Soleil", "Neige"),
+        "Préférences climatiques" to listOf("Tropical", "Tempéré", "Froid", "Désert", "Montagneux"),
+        "Moyens de transport" to listOf("Voiture", "Train", "Avion", "Bateau", "Vélo")
     )
+
 
     val selectedInterests = remember { mutableStateListOf<String>() }
 
     val interestIcons = mapOf(
-        "Aviation" to Icons.Default.AirplanemodeActive,
-        "Art" to Icons.Default.Brush,
-        "Cars" to Icons.Default.DirectionsCar,
-        "Technology" to Icons.Default.DeviceHub,
-        "Fashion" to Icons.Default.Checkroom,
-        "Health care" to Icons.Default.HealthAndSafety,
-        "Geography" to Icons.Default.Public,
-        "Finance" to Icons.Default.Money,
-        "Mental Health" to Icons.Default.Face,
-        "Programming" to Icons.Default.Code,
-        "Cinema" to Icons.Default.Movie,
-        "Sports" to Icons.Default.Sports,
-        "Travel" to Icons.Default.Flight,
-        "Gaming" to Icons.Default.Gamepad,
-        "Photography" to Icons.Default.CameraAlt,
-        "Design" to Icons.Default.DesignServices,
-        "Music" to Icons.Default.MusicNote
+        "Road Trip" to Icons.Default.DirectionsCar,
+        "City Break" to Icons.Default.LocationCity,
+        "Nature" to Icons.Default.Nature,
+        "Plage" to Icons.Default.BeachAccess,
+        "Aventure" to Icons.Default.Hiking,
+        "Culture" to Icons.Default.AccountBalance,
+        "Croisière" to Icons.Default.DirectionsBoat,
+        "Luxe" to Icons.Default.Star,
+        "Camping" to Icons.Default.Landscape,
+
+        "Randonnée" to Icons.Default.DirectionsWalk,
+        "Musées" to Icons.Default.Museum,
+        "Photographie" to Icons.Default.CameraAlt,
+        "Plongée" to Icons.Default.Pool,
+        "Ski" to Icons.Default.AcUnit,
+        "Safari" to Icons.Default.Pets,
+        "Gastronomie" to Icons.Default.Restaurant,
+        "Shopping" to Icons.Default.ShoppingCart,
+
+        "Relax" to Icons.Default.SelfImprovement,
+        "Fête" to Icons.Default.Celebration,
+        "Romantique" to Icons.Default.Favorite,
+        "Spiritualité" to Icons.Default.Spa,
+        "Famille" to Icons.Default.Groups,
+        "Soleil" to Icons.Default.WbSunny,
+        "Neige" to Icons.Default.AcUnit,
+
+        "Tropical" to Icons.Default.WbSunny,
+        "Tempéré" to Icons.Default.Thermostat,
+        "Froid" to Icons.Default.AcUnit,
+        "Désert" to Icons.Default.Landscape,
+        "Montagneux" to Icons.Default.Terrain,
+
+        "Voiture" to Icons.Default.DirectionsCar,
+        "Train" to Icons.Default.Train,
+        "Avion" to Icons.Default.Flight,
+        "Bateau" to Icons.Default.DirectionsBoat,
+        "Vélo" to Icons.Default.DirectionsBike
     )
+
 
     val blueNormal = Color(0xFF2196F3)
 
@@ -93,75 +96,85 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = vi
             .padding(24.dp)
     ) {
         Text(
-            text = "Let's select your interests.",
+            text = "Sélectionnons vos intérêts.",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
-            text = "Please select two or more to proceed.",
+            text = "Veuillez sélectionner deux ou plusieurs options pour continuer.",
             color = Color.Gray,
             fontSize = 14.sp,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        FlowRow(
-            mainAxisSpacing = 12.dp,
-            crossAxisSpacing = 12.dp
+        // **Ajout scroll ici**
+        val scrollState = rememberScrollState()
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(scrollState)
         ) {
-            interests.forEach { interest ->
-                val isSelected = selectedInterests.contains(interest)
-                OutlinedButton(
-                    onClick = {
-                        if (isSelected) selectedInterests.remove(interest)
-                        else selectedInterests.add(interest)
-                    },
-                    shape = RoundedCornerShape(50),
-                    border = if (isSelected)
-                        BorderStroke(2.dp, blueNormal)
-                    else
-                        BorderStroke(1.dp, Color.LightGray),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (isSelected) Color(0xFFE3F2FD) else Color.White,
-                        contentColor = Color.Black
-                    )
+            interestsByCategory.forEach { (category, interests) ->
+                Text(
+                    text = category,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                FlowRow(
+                    mainAxisSpacing = 12.dp,
+                    crossAxisSpacing = 12.dp
                 ) {
-                    Icon(
-                        imageVector = interestIcons[interest] ?: Icons.Default.Star,
-                        contentDescription = "$interest icon",
-                        tint = blueNormal,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = interest)
+                    interests.forEach { interest ->
+                        val isSelected = selectedInterests.contains(interest)
+                        OutlinedButton(
+                            onClick = {
+                                if (isSelected) selectedInterests.remove(interest)
+                                else selectedInterests.add(interest)
+                            },
+                            shape = RoundedCornerShape(50),
+                            border = if (isSelected)
+                                BorderStroke(2.dp, blueNormal)
+                            else
+                                BorderStroke(1.dp, Color.LightGray),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isSelected) Color(0xFFE3F2FD) else Color.White,
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Icon(
+                                imageVector = interestIcons[interest] ?: Icons.Default.Star,
+                                contentDescription = "$interest icon",
+                                tint = blueNormal,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = interest)
+                        }
+                    }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         val canContinue = selectedInterests.size >= 2
 
         Button(
             onClick = {
                 val currentUser = FirebaseAuth.getInstance().currentUser
-                val userId = currentUser?.uid // Utilisation de l'ID utilisateur plutôt que de l'email
+                val userId = currentUser?.uid
 
                 if (userId != null && canContinue) {
-                    val updatedProfile = UserProfile(
-                        id = userId,  // Passer l'ID utilisateur
-                        name = currentUser.displayName ?: "",
-                        interests = selectedInterests.toList()
-                    )
-
-                    viewModel.updateUserProfile(
-                        userId = userId,  // Passer l'ID utilisateur à la méthode du ViewModel
-                        updatedProfile = updatedProfile,
+                    viewModel.updateUserInterestsOnly(
+                        userId = userId,
+                        interests = selectedInterests.toList(),
                         onSuccess = {
-                            navController.navigate("next_screen")
+                            val interestsArg = selectedInterests.joinToString(",")
+                            navController.navigate("country_screen/$interestsArg")
                         },
                         onFailure = { error ->
-                            Log.e("ProfileScreen", "Erreur lors de la mise à jour : $error")
+                            Log.e("ProfileScreen", "Erreur mise à jour intérêts : $error")
                         }
                     )
                 } else {

@@ -20,8 +20,9 @@ import userViewModel
 
 data class CriteriaCategory(val title: String, val criteria: List<String>)
 
-class User {
+class user {
     companion object {
+        const val ROUTE = "UserSelectionScreen"
 
         private val criteriaCategories = listOf(
             CriteriaCategory("🌍 Style de voyage", listOf(
@@ -182,5 +183,5 @@ class User {
 @Composable
 private fun UserPreview() {
     val navController = rememberNavController()
-    User.user(navController)
+    user.user(navController)
 }

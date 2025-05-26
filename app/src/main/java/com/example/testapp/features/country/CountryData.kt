@@ -1,5 +1,8 @@
 package com.example.testapp.features.country
+import kotlinx.serialization.Serializable
 
+
+@Serializable
 data class CountryData(
     val name: String,
     val capital: String,
@@ -10,5 +13,10 @@ data class CountryData(
     val flagUrl: String,
     val mapUrl: String,
     val description: String,
-    val landmarkUrl: String
+    val landmarks: List<String> = emptyList(),
+    val image: String? = null
+
+
 )
+
+

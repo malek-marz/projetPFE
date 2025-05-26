@@ -30,6 +30,8 @@ class ProfileUserScreen {
 
             ProfileUserContent(user = state, navController = navController)
         }
+
+        const val profileUserScreenRoute = "profileUser"
     }
 }
 

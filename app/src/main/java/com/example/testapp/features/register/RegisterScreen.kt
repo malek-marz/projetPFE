@@ -1,4 +1,3 @@
-
 package com.example.testapp.features.register
 
 import android.util.Log
@@ -22,6 +21,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -61,7 +63,26 @@ class Register {
         @Composable
         fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = viewModel()) {
             val state by viewModel.state.collectAsState()
+            val context = LocalContext.current
+            val showDialog = remember { mutableStateOf(false) }
 
+            if (showDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showDialog.value = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showDialog.value = false
+                            navController.navigate(Login.LoginScreenRoute)
+                        }) {
+                            Text("OK")
+                        }
+                    },
+                    title = { Text("Vérification de l'email") },
+                    text = {
+                        Text("Un email de vérification a été envoyé à votre adresse. Veuillez vérifier votre boîte mail avant de vous connecter.")
+                    }
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -145,7 +166,7 @@ class Register {
                     // Confirm Password Field
                     OutlinedTextField(
                         value = state.confirmPassword,
-                        onValueChange = { viewModel.onConfirmPasswordChanged(it)},
+                        onValueChange = { viewModel.onConfirmPasswordChanged(it) },
                         visualTransformation = PasswordVisualTransformation(),
                         leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Confirmer le mot de passe") },
                         modifier = Modifier.fillMaxWidth(),
@@ -153,15 +174,15 @@ class Register {
                     )
 
                     // Gender Dropdown
-                    GenderDropdown(state.gender) { state.gender = it }
+                    GenderDropdown(state.gender) { viewModel.onGenderChanged(it) }
 
                     // Country Dropdown
-                    CountryDropdown(state.country) { state.country = it }
+                    CountryDropdown(state.country) { viewModel.onCountryChanged(it) }
 
                     // Birthday Field
                     OutlinedTextField(
                         value = state.birthday,
-                        onValueChange = { viewModel.onBirthdayChanged(it)},
+                        onValueChange = { viewModel.onBirthdayChanged(it) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         leadingIcon = { Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Date de naissance") },
                         modifier = Modifier.fillMaxWidth(),
@@ -175,8 +196,8 @@ class Register {
                         onClick = {
                             viewModel.register(
                                 onRegisterSuccess = {
-                                    navController.navigate(Login.LoginScreenRoute)
-                                    Log.i("FireBaseRegister", "Inscription réussie")
+                                    showDialog.value = true
+                                    Log.i("FireBaseRegister", "Inscription réussie, vérification email envoyée")
                                 },
                                 onRegisterFailed = {
                                     Log.e("FireBaseRegister", it)
@@ -206,7 +227,6 @@ class Register {
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenderDropdown(selectedGender: String, onGenderSelected: (String) -> Unit) {
@@ -228,7 +248,7 @@ fun GenderDropdown(selectedGender: String, onGenderSelected: (String) -> Unit) {
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
             },
-            label = { Text("Gender") }
+            label = { Text("Genre") }
         )
         ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
             genders.forEach { gender ->

@@ -43,9 +43,11 @@ fun PreviewCountryMapView() {
         population = "11 million",
         timezone = "CET",
         flagUrl = "https://www.countryflags.com/tn.png",
-        mapUrl = "https://fr.mappy.com/plan/pays/tn", // Exemple d'URL
+        mapUrl = "https://fr.mappy.com/plan/pays/tn",
         description = "Un pays magnifique en Afrique du Nord.",
-        landmarkUrl = "https://example.com/landmark"
+        landmarks = listOf("Tour Eiffel", "Cathédrale Notre-Dame"),
+        image = "https://example.com/image.jpg" // <--- ici, mettre une URL d’image valide
     )
+
     CountryMapView(countryData)
 }
