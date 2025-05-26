@@ -73,6 +73,10 @@ dependencies {
     implementation(libs.androidx.espresso.core)
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.volley)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.appcheck.playintegrity)
+    implementation(libs.firebase.storage)
+    implementation(libs.places)
     implementation(libs.coil.compose)
     implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
@@ -87,10 +91,29 @@ dependencies {
     // navigation
     implementation(libs.compose.navigation)
     implementation(libs.accompanist.flowlayout.v0280)
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 
     // room
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
+    implementation ("com.google.android.material:material:1.9.0")
+
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
+    // Retrofit
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.google.firebase:firebase-appcheck-debug:17.1.1")
+
+
+    // Kotlin Serialization
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+
+    // Firebase Firestore
+    implementation ("com.google.firebase:firebase-firestore-ktx:24.4.4")
     implementation(libs.google.firebase.messaging.ktx)
 
 }

@@ -1,5 +1,6 @@
 package com.example.yourapp.model
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.testapp.features.register.RegisterState
 import com.google.firebase.auth.FirebaseAuth
@@ -8,53 +9,89 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
-// TODO: fix gender and country
-// TODO: add error state to password and confirm password
-class RegisterViewModel (): ViewModel() {
+class RegisterViewModel : ViewModel() {
+
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state
 
-    fun register(onRegisterSuccess: () -> Unit, onRegisterFailed: (String) -> Unit) {
-        if (!validateRegisterModel(state.value)) {
-            onRegisterFailed("Veuillez vérifier les informations fournies. ${state.value}")
+    // Étape 1 : Création compte + envoi email de vérification
+    fun register(
+        onRegisterSuccess: () -> Unit,
+        onRegisterFailed: (String) -> Unit
+    ) {
+        val currentState = state.value
+
+        // Validation des données avant inscription
+        if (!validateRegisterModel(currentState)) {
+            onRegisterFailed("Formulaire invalide : vérifiez les champs")
             return
         }
 
-        val auth = FirebaseAuth.getInstance()
-        val db = FirebaseFirestore.getInstance()
+        val email = currentState.email
+        val password = currentState.password
 
-        // Création de l'utilisateur avec email et mot de passe
-        auth.createUserWithEmailAndPassword(state.value.email, state.value.password)
+        auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
-
-                    // Création d'un objet utilisateur à stocker dans Firestore
-                    val user = mapOf(
-                        "firstName" to state.value.firstName,
-                        "lastName" to state.value.lastName,
-                        "username" to state.value.username,
-                        "email" to state.value.email,
-                        "birthday" to state.value.birthday,
-                        "gender" to state.value.gender,
-                        "country" to state.value.country
-                    )
-
-                    // Ajout des informations dans Firestore
-                    db.collection("users").document(userId)
-                        .set(user)
-                        .addOnSuccessListener {
-                            onRegisterSuccess()
-                        }
-                        .addOnFailureListener { e ->
-                            onRegisterFailed("Échec de l'inscription : ${e.localizedMessage}")
+                    val user = auth.currentUser
+                    user?.sendEmailVerification()
+                        ?.addOnCompleteListener { emailTask ->
+                            if (emailTask.isSuccessful) {
+                                Log.i("Register", "Email de vérification envoyé à $email")
+                                // Ne pas enregistrer dans Firestore avant vérification email
+                                onRegisterSuccess()
+                            } else {
+                                onRegisterFailed("Échec de l'envoi de l'email de vérification : ${emailTask.exception?.message}")
+                            }
                         }
                 } else {
-                    onRegisterFailed("Échec : ${task.exception?.message}")
+                    onRegisterFailed(task.exception?.message ?: "Inscription échouée")
                 }
             }
     }
 
+    // Étape 2 : Après clic "J'ai vérifié mon email" — création document utilisateur Firestore
+    fun createUserDocumentIfEmailVerified(
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val user = auth.currentUser
+        if (user == null) {
+            onFailure("Utilisateur non connecté")
+            return
+        }
+
+        user.reload().addOnSuccessListener {
+            if (user.isEmailVerified) {
+                val userId = user.uid
+                val userData = mapOf(
+                    "firstName" to state.value.firstName,
+                    "lastName" to state.value.lastName,
+                    "username" to state.value.username,
+                    "email" to state.value.email,
+                    "birthday" to state.value.birthday,
+                    "gender" to state.value.gender,
+                    "country" to state.value.country
+                )
+
+                db.collection("users").document(userId)
+                    .set(userData)
+                    .addOnSuccessListener { onSuccess() }
+                    .addOnFailureListener { e ->
+                        onFailure("Erreur lors de l'enregistrement Firestore : ${e.localizedMessage}")
+                    }
+            } else {
+                onFailure("Votre email n'a pas encore été vérifié.")
+            }
+        }.addOnFailureListener { e ->
+            onFailure("Erreur lors de la vérification email : ${e.localizedMessage}")
+        }
+    }
+
+    // === Mise à jour de l'état (copy) ===
     fun onFirstNameChanged(firstName: String) {
         _state.update { it.copy(firstName = firstName) }
     }
@@ -92,6 +129,7 @@ class RegisterViewModel (): ViewModel() {
     }
 }
 
+// === Validation ===
 fun validateRegisterModel(model: RegisterState): Boolean {
     return when {
         model.firstName.isBlank() || model.lastName.isBlank() || model.username.isBlank() ||
@@ -99,11 +137,8 @@ fun validateRegisterModel(model: RegisterState): Boolean {
                 model.birthday.isBlank() -> false
 
         model.password != model.confirmPassword -> false
-
         !android.util.Patterns.EMAIL_ADDRESS.matcher(model.email).matches() -> false
-
         model.password.length < 6 -> false
-
         !model.birthday.matches("^\\d{2}/\\d{2}/\\d{4}$".toRegex()) -> false
 
         else -> true

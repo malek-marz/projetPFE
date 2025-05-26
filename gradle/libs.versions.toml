@@ -2,9 +2,11 @@
 accompanistFlowlayout = "0.30.1"
 accompanistFlowlayoutVersion = "0.28.0"
 agp = "8.8.0"
+converterGson = "2.9.0"
 coilCompose = "2.4.0"
 foundation = "1.8.0"
 googleAuthLibraryOauth2Http = "1.19.0"
+
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -17,15 +19,28 @@ composeNavigation = "2.8.6"
 material3 = "1.3.1"
 material3Version = "1.1.0"
 materialIconsExtended = "1.7.8"
+retrofit = "2.9.0"
 room = "2.6.1"
 ksp = "2.0.20-1.0.25"
 googleGmsGoogleServices = "4.4.2"
 firebase-bom= "33.13.0"
 firebaseDatabaseKtx = "21.0.0"
+
+supportAnnotations = "28.0.0"
+mediationTestSuite = "3.0.0"
+firebaseAuth = "23.2.0"
+credentials = "1.5.0"
+credentialsPlayServicesAuth = "1.5.0"
+googleid = "1.1.1"
+
 firebaseMessagingKtx = "24.1.1"
 volley = "1.2.1"
 adsMobileSdk = "0.15.1-alpha01"
 firebaseStorageKtx = "21.0.1"
+firebaseAppcheckKtx = "18.0.0"
+firebaseAppcheckPlayintegrity = "18.0.0"
+firebaseStorage = "21.0.1"
+places = "4.2.0"
 [libraries]
 accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanistFlowlayout" }
 accompanist-flowlayout-v0280 = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanistFlowlayoutVersion" }
@@ -35,6 +50,7 @@ androidx-foundation = { module = "androidx.compose.foundation:foundation", versi
 androidx-material = { module = "androidx.compose.material:material", version.ref = "materialIconsExtended" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-material3-v110 = { module = "androidx.compose.material3:material3", version.ref = "material3Version" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 google-auth-library-oauth2-http = { module = "com.google.auth:google-auth-library-oauth2-http", version.ref = "googleAuthLibraryOauth2Http" }
@@ -56,6 +72,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "composeNavigation" }
 
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -63,9 +80,21 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth-ktx" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
 firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx" }
+
+support-annotations = { group = "com.android.support", name = "support-annotations", version.ref = "supportAnnotations" }
+mediation-test-suite = { group = "com.google.android.ads", name = "mediation-test-suite", version.ref = "mediationTestSuite" }
+google-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
+firebase-appcheck-ktx = { group = "com.google.firebase", name = "firebase-appcheck-ktx", version.ref = "firebaseAppcheckKtx" }
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity", version.ref = "firebaseAppcheckPlayintegrity" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
+places = { group = "com.google.android.libraries.places", name = "places", version.ref = "places" }
 
 
 [plugins]

@@ -28,7 +28,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.R
-import com.example.testapp.features.homescreen.Home
 
 class Login {
     companion object {
@@ -119,7 +118,7 @@ class Login {
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { viewModel.login { navController.navigate(Home.homeScreenRoute) } },
+                        onClick = { viewModel.login { navController.navigate(HomeScreen.HomeScreenRoute) } },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)

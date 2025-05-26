@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1015058455020",
+    "project_id": "projet-pfe-94672",
+    "storage_bucket": "projet-pfe-94672.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1015058455020:android:08f3db2163786686f948c9",
+        "android_client_info": {
+          "package_name": "com.ahmed.journeybuddy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYWP2RSeV2Ve6OjUu1TiD2WucyWuvrdcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
