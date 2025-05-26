@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "345639466138",
+    "firebase_url": "https://journeybuddy-83c5e-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "journeybuddy-83c5e",
     "storage_bucket": "journeybuddy-83c5e.firebasestorage.app"
   },

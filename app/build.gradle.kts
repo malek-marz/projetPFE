@@ -1,3 +1,5 @@
+// app/build.gradle.kts
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -23,7 +25,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
@@ -39,16 +44,18 @@ android {
     buildFeatures {
         compose = true
     }
+
     packaging {
         resources {
-            excludes += setOf(
-                "META-INF/DEPENDENCIES"
-            )
+            excludes += setOf("META-INF/DEPENDENCIES")
         }
     }
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
+
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material)
@@ -70,6 +77,8 @@ dependencies {
     implementation(libs.firebase.appcheck.playintegrity)
     implementation(libs.firebase.storage)
     implementation(libs.places)
+    implementation(libs.coil.compose)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -105,5 +114,8 @@ dependencies {
 
     // Firebase Firestore
     implementation ("com.google.firebase:firebase-firestore-ktx:24.4.4")
+    implementation(libs.google.firebase.messaging.ktx)
 
 }
+
+apply(plugin = "com.google.gms.google-services")

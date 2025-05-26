@@ -20,29 +20,33 @@ import userViewModel
 
 data class CriteriaCategory(val title: String, val criteria: List<String>)
 
-class user {
+class User {
     companion object {
-        const val ROUTE = "UserSelectionScreen"
 
         private val criteriaCategories = listOf(
-            CriteriaCategory("🌍 Style de voyage", listOf(
-                "Aventurier", "Voyage organisé", "Road trip", "Nature", "Ville",
-                "Voyage économique", "Voyage de luxe", "Auberge", "Hôtel", "Local"
-            )),
             CriteriaCategory("🧠 Personnalité & Valeurs", listOf(
                 "Respectueux", "Tolérant", "Curieux", "Sociable", "Introverti",
-                "Ouvert d’esprit", "Flexible", "Organisé", "Ponctuel", "Prudent"
+                "Extraverti", "Ouvert d’esprit", "Flexible", "Organisé", "Ponctuel",
+                "Prudent", "Calme", "Optimiste", "Réfléchi", "Empathique"
             )),
-            CriteriaCategory("🧘‍♀️ Habitudes de vie", listOf(
-                "Non-fumeur", "Végétarien", "Végane", "Cuisiner", "Couche-tôt",
-                "Couche-tard", "Sportif", "Détente", "Marcheur", "Accro au café"
+            CriteriaCategory("🧘‍♀️ Habitudes & Rythme", listOf(
+                "Non-fumeur", "Fumeur", "Couche-tôt", "Couche-tard", "Sportif",
+                "Détente", "Marcheur", "Amateur de café", "Noctambule", "Matinal",
+                "Flexible"
             )),
-            CriteriaCategory("🎧 Centres d’intérêt", listOf(
-                "Musique", "Cinéma", "Photo", "Randonnée", "Musées",
-                "Gastronomie", "Plage", "Festivals", "Lecture", "Histoire"
+            CriteriaCategory("🗣️ Communication", listOf(
+                "Communicatif", "Discret", "Humoristique", "Direct", "Patient",
+                "Calme", "À l’écoute", "Ouvert aux discussions", "Respectueux"
             )),
-            CriteriaCategory("🗣️ Langues & Communication", listOf(
-                "Anglais", "Espagnol", "Français", "Polyglotte", "Communicatif", "Discret", "Rencontres locales"
+            CriteriaCategory("👫 Qualités d’un(e) ami(e) de voyage", listOf(
+                "Calme", "Empathique", "Humoristique", "Curieux", "Respectueux",
+                "Partageur", "Compromis", "Spontané", "Fiable", "Motivant",
+                "Organisé", "Patient", "Adaptable", "Optimiste", "Collaboratif",
+                "Soutenant", "Ouvert aux imprévus", "Bienveillant", "Autonome"
+            )) ,
+            CriteriaCategory("🌍 Langue", listOf( // Nouvelle catégorie ajoutée
+                "Anglais", "Français", "Espagnol", "Allemand", "Italien",
+                "Chinois", "Japonais", "Russe", "Arabe", "Portugais"
             ))
         )
 
@@ -58,101 +62,111 @@ class user {
                 currentUser?.uid?.let { viewModel.loadCriteriaForUser(it) }
             }
 
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text("Critères de voyage", style = MaterialTheme.typography.titleLarge) },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            titleContentColor = Color.White
-                        )
-                    )
-                },
-                snackbarHost = { SnackbarHost(snackbarHostState) }
-            ) { paddingValues ->
-                LazyColumn(
-                    contentPadding = paddingValues,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    item {
-                        Text(
-                            text = "Sélectionnez les critères qui vous correspondent pour trouver un partenaire de voyage compatible.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
+            // Palette bleue personnalisée
+            val blueColorScheme = MaterialTheme.colorScheme.copy(
+                primary = Color(0xFF1E88E5),          // bleu moyen
+                onPrimary = Color.White,
+                surfaceVariant = Color(0xFFE3F2FD),  // bleu clair
+                onSurface = Color(0xFF0D47A1)         // bleu foncé
+            )
 
-                    criteriaCategories.forEach { category ->
+            MaterialTheme(colorScheme = blueColorScheme) {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("Critères partenaire de voyage", style = MaterialTheme.typography.titleLarge) },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                titleContentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                    },
+                    snackbarHost = { SnackbarHost(snackbarHostState) }
+                ) { paddingValues ->
+                    LazyColumn(
+                        contentPadding = paddingValues,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
                         item {
                             Text(
-                                text = category.title,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(vertical = 8.dp)
+                                text = "Choisissez les mots qui décrivent le mieux votre partenaire de voyage idéal.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.padding(bottom = 8.dp)
                             )
                         }
 
-                        item {
-                            LazyVerticalGrid(
-                                columns = GridCells.Adaptive(130.dp),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 250.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                userScrollEnabled = false
-                            ) {
-                                items(category.criteria) { criterion ->
-                                    val isSelected = selectedCriteria.contains(criterion)
-                                    FilterChip(
-                                        text = criterion,
-                                        isSelected = isSelected,
-                                        onClick = { viewModel.toggleCriterion(criterion) }
-                                    )
+                        criteriaCategories.forEach { category ->
+                            item {
+                                Text(
+                                    text = category.title,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+
+                            item {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Adaptive(130.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(max = 250.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    userScrollEnabled = false
+                                ) {
+                                    items(category.criteria) { criterion ->
+                                        val isSelected = selectedCriteria.contains(criterion)
+                                        FilterChip(
+                                            text = criterion,
+                                            isSelected = isSelected,
+                                            onClick = { viewModel.toggleCriterion(criterion) }
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    item {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Button(
-                            onClick = {
-                                val user = FirebaseAuth.getInstance().currentUser
-                                user?.uid?.let { uid ->
-                                    viewModel.saveCriteriaForUser(
-                                        userId = uid,
-                                        onSuccess = {
-                                            coroutineScope.launch {
-                                                snackbarHostState.showSnackbar("✅ Critères enregistrés !")
-                                                navController.navigate("ProfileUserScreen") {
-                                                    popUpTo("UserSelectionScreen") { inclusive = true }
+                        item {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = {
+                                    val user = FirebaseAuth.getInstance().currentUser
+                                    user?.uid?.let { uid ->
+                                        viewModel.saveCriteriaForUser(
+                                            userId = uid,
+                                            onSuccess = {
+                                                coroutineScope.launch {
+                                                    snackbarHostState.showSnackbar("✅ Critères enregistrés !")
+                                                    navController.navigate("ProfileUserScreen") {
+                                                        popUpTo("UserSelectionScreen") { inclusive = true }
+                                                    }
+                                                }
+                                            },
+                                            onError = { e ->
+                                                coroutineScope.launch {
+                                                    snackbarHostState.showSnackbar("❌ Erreur : ${e.message}")
                                                 }
                                             }
-                                        },
-                                        onError = { e ->
-                                            coroutineScope.launch {
-                                                snackbarHostState.showSnackbar("❌ Erreur : ${e.message}")
-                                            }
-                                        }
-                                    )
-                                } ?: coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("❗ Utilisateur non connecté.")
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            shape = MaterialTheme.shapes.large
-                        ) {
-                            Text(
-                                text = "Valider mes critères",
-                                style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
-                            )
+                                        )
+                                    } ?: coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("❗ Utilisateur non connecté.")
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                shape = MaterialTheme.shapes.large
+                            ) {
+                                Text(
+                                    text = "Valider mes critères",
+                                    style = MaterialTheme.typography.titleMedium.copy(color = Color.White)
+                                )
+                            }
                         }
                     }
                 }
@@ -170,7 +184,7 @@ class user {
             ) {
                 Text(
                     text = text,
-                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -179,9 +193,4 @@ class user {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun UserPreview() {
-    val navController = rememberNavController()
-    user.user(navController)
-}
+

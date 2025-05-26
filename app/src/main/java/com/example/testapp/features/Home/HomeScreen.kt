@@ -22,8 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.testapp.features.USER.user
-import com.example.testapp.features.profileUser.ProfileUserScreen.Companion.profileUserScreenRoute
 import com.example.testapp.viewmodels.Review
 import com.google.firebase.auth.FirebaseAuth
 import com.example.testapp.features.Home.model.UserReview
@@ -32,6 +30,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.text.style.TextOverflow
+import com.example.testapp.features.profileUser.ProfileUserScreen
 
 class HomeScreen {
     companion object {
@@ -109,7 +108,7 @@ class HomeScreen {
                                     }
 
                                     IconButton(onClick = {
-                                        navController.navigate(profileUserScreenRoute)
+                                        navController.navigate("ProfileUserScreen")
                                     }) {
                                         Icon(Icons.Default.AccountCircle, contentDescription = "Profil utilisateur", tint = Color.White)
                                     }
@@ -308,7 +307,7 @@ class HomeScreen {
                                                 .width(120.dp)
                                         ) {
                                             Button(
-                                                onClick = { navController.navigate(user.ROUTE) },
+                                                onClick = { navController.navigate("User") },
                                                 shape = CircleShape,
                                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
                                                 modifier = Modifier.size(64.dp),
@@ -646,7 +645,7 @@ class HomeScreen {
                 )
                 NavigationBarItem(
                     selected = false,
-                    onClick = { navController.navigate("chat") },
+                    onClick = { navController.navigate("Chs") },
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Chat", tint = Color.White) },
                     label = { Text("Chat", color = Color.White) }
                 )
