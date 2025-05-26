@@ -41,6 +41,9 @@ class Splash {
                 }
             }
 
+
+
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
