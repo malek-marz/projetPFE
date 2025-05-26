@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
@@ -22,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.text.font.FontWeight
 import com.example.testapp.R
 import com.example.testapp.features.register.Register
+import com.google.firebase.auth.FirebaseAuth
 
 class Splash {
     companion object {
@@ -29,6 +31,18 @@ class Splash {
 
         @Composable
         fun SplashScreen(navController: NavController) {
+
+            val user = FirebaseAuth.getInstance().currentUser
+
+            // 🔁 If the user is already logged in, navigate to HomeScreen
+            LaunchedEffect(user) {
+                if (user != null) {
+                    navController.navigate("HomeScreen") {
+                        popUpTo("SplashScreen") { inclusive = true }
+                    }
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
