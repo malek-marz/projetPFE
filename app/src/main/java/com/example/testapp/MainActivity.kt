@@ -13,20 +13,20 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.journeybuddy.ui.screens.ProfileScreen
 import com.example.testapp.features.Buddys.Buddy
+import com.example.testapp.features.chat.ChatScreen
+import com.example.testapp.features.chatPartnerProfile.ChatPartnerProfileScreen
 import com.example.testapp.features.chs.Chs
 import com.example.testapp.features.homescreen.Home
 import com.example.testapp.features.login.Login
-import com.example.testapp.features.profileUser.ProfileUserScreen
-import com.example.testapp.features.USER.User
-import com.example.testapp.features.chat.ChatScreen
 import com.example.testapp.features.login.Password
+import com.example.testapp.features.profileUser.ProfileUserScreen
 import com.example.testapp.features.register.Register
 import com.example.testapp.features.splash.Splash
+import com.example.testapp.features.chs.ReportUserScreen
+import com.example.testapp.features.USER.User
 import com.example.testapp.ui.theme.TestAppTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +34,6 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
-        // Set correct region-specific URL for your Realtime Database
         FirebaseDatabase.getInstance("https://journeybuddy-83c5e-default-rtdb.europe-west1.firebasedatabase.app")
 
         enableEdgeToEdge()
@@ -51,16 +50,43 @@ class MainActivity : ComponentActivity() {
                 composable("ProfileScreen") { ProfileScreen.InterestSelectionScreen(navController) }
                 composable("User") { User.user(navController) }
                 composable("Password") { Password.ForgotPasswordScreen(navController) }
+
+                // Chat screen with username and email params
                 composable(
-                    route = "chat/{email}",
-                    arguments = listOf(navArgument("email") {
-                        type = NavType.StringType
-                    })
+                    route = "chat_screen/{username}/{email}",
+                    arguments = listOf(
+                        navArgument("username") { type = NavType.StringType },
+                        navArgument("email") { type = NavType.StringType }
+                    )
                 ) { backStackEntry ->
+                    val username = backStackEntry.arguments?.getString("username") ?: ""
                     val email = backStackEntry.arguments?.getString("email") ?: ""
-                    ChatScreen(initialEmail = email)
+                    ChatScreen(
+                        initialEmail = email,
+                        initialUsername = username,
+                        onProfileClick = { clickedUsername ->
+                            navController.navigate("chat_partner_profile/$clickedUsername")
+                        }
+                    )
                 }
 
+                // Chat partner profile screen with username param
+                composable(
+                    route = "chat_partner_profile/{username}",
+                    arguments = listOf(navArgument("username") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val username = backStackEntry.arguments?.getString("username") ?: ""
+                    ChatPartnerProfileScreen(partnerUsername = username)
+                }
+
+                // New: Report User screen with username param
+                composable(
+                    route = "report_user/{uid}",
+                    arguments = listOf(navArgument("uid") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val uid = backStackEntry.arguments?.getString("uid") ?: ""
+                    ReportUserScreen(reportedUserUid = uid)
+                }
             }
         }
     }
@@ -70,6 +96,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     TestAppTheme {
-        // Empty preview
+        // Empty preview for now
     }
 }

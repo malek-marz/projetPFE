@@ -73,6 +73,8 @@ dependencies {
     implementation(libs.androidx.espresso.core)
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.volley)
+    implementation(libs.coil.compose)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,6 +91,8 @@ dependencies {
     // room
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
+    implementation(libs.google.firebase.messaging.ktx)
+
 }
 
 apply(plugin = "com.google.gms.google-services")
