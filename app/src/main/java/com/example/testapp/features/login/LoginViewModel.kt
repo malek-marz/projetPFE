@@ -53,8 +53,8 @@ class LoginViewModel : ViewModel() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val userUid = auth.currentUser?.uid
-                    if (userUid == null) {
+                    val user = auth.currentUser
+                    if (user == null) {
                         _state.update {
                             it.copy(
                                 errorMessage = "Erreur inconnue : utilisateur non trouvé",
@@ -64,8 +64,32 @@ class LoginViewModel : ViewModel() {
                         return@addOnCompleteListener
                     }
 
-                    // Check if user is banned
-                    checkUserBanStatus(userUid, onLoginSuccess)
+                    // 🚨 Vérification si email confirmé
+                    user.reload().addOnSuccessListener {
+                        if (!user.isEmailVerified) {
+                            auth.signOut()
+                            _state.update {
+                                it.copy(
+                                    errorMessage = "Veuillez vérifier votre adresse email avant de vous connecter.",
+                                    isLoading = false
+                                )
+                            }
+                            return@addOnSuccessListener
+                        }
+
+                        // ✅ Si email vérifié, continuer avec la vérification de bannissement
+                        val userUid = user.uid
+                        checkUserBanStatus(userUid, onLoginSuccess)
+
+                    }.addOnFailureListener {
+                        auth.signOut()
+                        _state.update {
+                            it.copy(
+                                errorMessage = "Erreur lors de la vérification de l'adresse email.",
+                                isLoading = false
+                            )
+                        }
+                    }
 
                 } else {
                     _state.update {
@@ -77,6 +101,7 @@ class LoginViewModel : ViewModel() {
                 }
             }
     }
+
 
     private fun checkUserBanStatus(userUid: String, onLoginSuccess: () -> Unit) {
         db.collection("users").document(userUid).get()
