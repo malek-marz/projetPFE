@@ -1,14 +1,15 @@
 package com.example.testapp.features.profileUser
 
 import android.widget.Toast
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -20,7 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,21 +39,12 @@ class ProfileUserScreen {
             val context = LocalContext.current
 
             val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-                if (uri != null) {
-                    Log.d("ProfileScreen", "Image selected: $uri")
+                uri?.let {
                     viewModel.uploadProfilePicture(
-                        uri = uri,
-                        onSuccess = {
-                            Toast.makeText(context, "Photo mise à jour", Toast.LENGTH_SHORT).show()
-                            Log.d("ProfileScreen", "Image upload and Firestore update successful")
-                        },
-                        onFailure = {
-                            Toast.makeText(context, "Erreur : ${it.message}", Toast.LENGTH_SHORT).show()
-                            Log.e("ProfileScreen", "Image upload or Firestore update failed", it)
-                        }
+                        uri = it,
+                        onSuccess = { Toast.makeText(context, "Photo mise à jour", Toast.LENGTH_SHORT).show() },
+                        onFailure = { Toast.makeText(context, "Erreur : ${it.message}", Toast.LENGTH_SHORT).show() }
                     )
-                } else {
-                    Log.w("ProfileScreen", "No image selected")
                 }
             }
 
@@ -58,9 +52,11 @@ class ProfileUserScreen {
                 viewModel.fetchUserProfile()
             }
 
-            ProfileUserContent(user = state, navController = navController, onChangePhoto = {
-                launcher.launch("image/*")
-            })
+            ProfileUserContent(
+                user = state,
+                navController = navController,
+                onChangePhoto = { launcher.launch("image/*") }
+            )
         }
     }
 }
@@ -70,14 +66,18 @@ fun ProfileUserContent(user: User, navController: NavController, onChangePhoto: 
     val primaryColor = Color(0xFF1A73E8)
     val lightPrimaryColor = primaryColor.copy(alpha = 0.65f)
     val backgroundColor = Color(0xFFF5F5F5)
+    val background = Color(0xFF3636E0)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(backgroundColor)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    )
+
+    {
         Text(
             text = "Votre Profil",
             fontSize = 26.sp,
@@ -119,14 +119,54 @@ fun ProfileUserContent(user: User, navController: NavController, onChangePhoto: 
         InfoRow("Date de naissance", user.birthday, Icons.Default.DateRange, lightPrimaryColor)
         InfoRow("Pays", user.country, Icons.Default.Public, lightPrimaryColor)
         InfoRow("Sexe", user.gender, Icons.Default.Wc, lightPrimaryColor)
-        if (user.savedCountryName.isNotEmpty()) {
-            InfoRow("Pays visités", user.savedCountryName, Icons.Default.Flag, lightPrimaryColor)
+
+        if (user.visitedCountries.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Card(
+                elevation = 4.dp,
+                backgroundColor = Color.White,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Pays visités",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    FlowRow(
+                        mainAxisSpacing = 12.dp,
+                        crossAxisSpacing = 12.dp
+                    ) {
+                        user.visitedCountries.forEachIndexed { index, country ->
+                            ChipCountryItem(
+                                text = country,
+                                highlighted = index == user.visitedCountries.lastIndex
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { navController.navigate("LeaveCountryReview") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(backgroundColor = primaryColor)
+            ) {
+                Text("Donnez vos avis d’un pays", color = Color.White, fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Vos critères :",
+            text = "Vos préférences :",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = lightPrimaryColor,
@@ -134,17 +174,15 @@ fun ProfileUserContent(user: User, navController: NavController, onChangePhoto: 
         )
 
         if (user.criteria.isEmpty()) {
-            Text(text = "Aucun critère défini.", color = Color.Gray)
+            Text(text = "Aucune préférence définie.", color = Color.Gray)
         } else {
             FlowRow(
                 mainAxisSpacing = 8.dp,
                 crossAxisSpacing = 8.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 user.criteria.forEach { critere ->
-                    ChipItem(text = critere, color = lightPrimaryColor)
+                    ChipItem(text = critere, color = background)
                 }
             }
         }
@@ -157,7 +195,7 @@ fun ProfileUserContent(user: User, navController: NavController, onChangePhoto: 
             shape = MaterialTheme.shapes.medium,
             colors = ButtonDefaults.buttonColors(backgroundColor = primaryColor)
         ) {
-            Text("Modifier mes critères", color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Modifier mes préférences", color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -201,7 +239,7 @@ fun InfoRow(label: String, value: String, icon: ImageVector, iconTint: Color) {
 @Composable
 fun ChipItem(text: String, color: Color) {
     Surface(
-        color = Color(0xFFF0F0F0),  // fond gris très clair pour douceur
+        color = Color(0xFFF0F0F0),
         shape = MaterialTheme.shapes.small,
         elevation = 0.dp
     ) {
@@ -212,5 +250,38 @@ fun ChipItem(text: String, color: Color) {
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold
         )
+    }
+}
+
+@Composable
+fun ChipCountryItem(text: String, highlighted: Boolean) {
+    val chipBackground = if (highlighted) Color(0xFFFFF3E0) else Color(0xFFE3F2FD)
+    val chipTextColor = if (highlighted) Color(0xFFE65100) else Color(0xFF0D47A1)
+
+    Surface(
+        color = chipBackground,
+        shape = MaterialTheme.shapes.small,
+        elevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = text,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = chipTextColor
+            )
+            if (highlighted) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.FlightTakeoff,
+                    contentDescription = "Prochain voyage",
+                    tint = chipTextColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }

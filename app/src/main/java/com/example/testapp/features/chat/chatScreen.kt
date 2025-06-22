@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
@@ -53,7 +54,7 @@ fun ChatScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFFFFF))
+            .background(Color(0xFFF5F8FE))
             .padding(16.dp)
     ) {
         // Header
@@ -85,7 +86,7 @@ fun ChatScreen(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color(0xFFE3EEFF), shape = MaterialTheme.shapes.small),
+                        .background(Color(0xFFE3EEFF), shape = MaterialTheme.shapes.large),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -104,12 +105,11 @@ fun ChatScreen(
             }
         }
 
-        // Séparation visuelle
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Color(0xFF0D47A1).copy(alpha = 0.5f))
+                .background(Color(0xFF0D47A1).copy(alpha = 0.4f))
         )
 
         // Messages list
@@ -121,7 +121,7 @@ fun ChatScreen(
             reverseLayout = true,
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            items(messages.reversed()) { msg ->
+            items(messages.reversed(), key = { it.createdAt }) { msg ->
                 val isMine = msg.sendergmail == currentUser?.email
                 MessageBubblePro(
                     message = msg.messageText ?: "",
@@ -131,12 +131,11 @@ fun ChatScreen(
             }
         }
 
-        // Séparation visuelle
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Color(0xFF0D47A1).copy(alpha = 0.5f))
+                .background(Color(0xFF0D47A1).copy(alpha = 0.4f))
                 .padding(vertical = 4.dp)
         )
 
@@ -145,6 +144,7 @@ fun ChatScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
+                .shadow(4.dp, shape = MaterialTheme.shapes.large)
                 .background(Color.White, shape = MaterialTheme.shapes.large)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
@@ -160,18 +160,26 @@ fun ChatScreen(
                 cursorBrush = SolidColor(Color.Black)
             )
 
-            Text(
-                text = "Envoyer",
+            Box(
                 modifier = Modifier
+                    .padding(start = 8.dp)
+                    .background(
+                        color = if (textFieldValue.text.isNotBlank()) Color(0xFF0D47A1) else Color(0xFFAAAAAA),
+                        shape = MaterialTheme.shapes.medium
+                    )
                     .clickable(enabled = textFieldValue.text.isNotBlank()) {
                         viewModel.setMessageText(textFieldValue.text.trim())
                         viewModel.sendMessage(context)
                         textFieldValue = TextFieldValue("")
                     }
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                color = if (textFieldValue.text.isNotBlank()) Color.Black else Color(0xFFAAAAAA),
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            )
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Envoyer",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            }
         }
     }
 }
@@ -180,7 +188,8 @@ fun ChatScreen(
 fun MessageBubblePro(
     message: String,
     isMine: Boolean,
-    createdAt: Long = 0L
+    createdAt: Long = 0L,
+    modifier: Modifier = Modifier
 ) {
     val timeFormatted = remember(createdAt) {
         if (createdAt != 0L) {
@@ -192,9 +201,9 @@ fun MessageBubblePro(
     }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Bottom
     ) {
@@ -202,7 +211,7 @@ fun MessageBubblePro(
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(Color(0xFFE3EEFF), shape = MaterialTheme.shapes.small),
+                    .background(Color(0xFFE3EEFF), shape = MaterialTheme.shapes.large),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -228,7 +237,7 @@ fun MessageBubblePro(
                 Text(
                     text = message,
                     color = Color.Black,
-                    style = MaterialTheme.typography.bodyLarge.copy(
+                    style = MaterialTheme.typography.bodyMedium.copy(
                         lineHeight = 20.sp,
                         letterSpacing = 0.25.sp
                     )

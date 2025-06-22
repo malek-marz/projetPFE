@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.testapp.features.chat.Message
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,20 +58,21 @@ class ChsViewModel : ViewModel() {
                     return@launch
                 }
 
-                val currentUserEmail = withContext(Dispatchers.IO) {
+                val friendsSnapshot = withContext(Dispatchers.IO) {
                     dbFirestore.collection("users")
                         .document(currentUserUid)
+                        .collection("friends")
                         .get()
                         .await()
-                        .getString("email")
                 }
+                val friendUids = friendsSnapshot.documents.map { it.id }
+                Log.d("ChsViewModel", "Friends UIDs: $friendUids")
 
-                if (currentUserEmail == null) {
-                    Log.w("Firestore", "Could not fetch current user's email")
+                if (friendUids.isEmpty()) {
+                    _users.value = emptyList()
                     return@launch
                 }
 
-                // Récupérer la liste des utilisateurs bloqués par l'utilisateur courant
                 val blockedUsers = withContext(Dispatchers.IO) {
                     dbFirestore.collection("users")
                         .document(currentUserUid)
@@ -79,30 +81,39 @@ class ChsViewModel : ViewModel() {
                         .get("blocked") as? List<String> ?: emptyList()
                 }
 
-                val result = withContext(Dispatchers.IO) {
-                    dbFirestore.collection("users")
-                        .whereNotEqualTo("email", currentUserEmail)
+                val usersList = mutableListOf<UserDisplay>()
+                val chunkSize = 10
+                friendUids.chunked(chunkSize).forEach { chunk ->
+                    val querySnapshot = dbFirestore.collection("users")
+                        .whereIn(FieldPath.documentId(), chunk)
                         .get()
                         .await()
+
+                    querySnapshot.documents.forEach { doc ->
+                        val uid = doc.id
+                        val email = doc.getString("email")
+                        val username = doc.getString("username")
+                        if (email != null && username != null && uid !in blockedUsers) {
+                            usersList.add(UserDisplay(uid = uid, username = username, email = email))
+                        }
+                    }
                 }
 
-                val userList = result.documents.mapNotNull { doc ->
-                    val email = doc.getString("email")
-                    val username = doc.getString("username")
-                    val uid = doc.id
-                    // Filtrer les utilisateurs bloqués
-                    if (email != null && username != null && uid !in blockedUsers) {
-                        UserDisplay(uid = uid, username = username, email = email)
-                    } else null
+                _users.value = usersList
+
+                val currentUserEmail = withContext(Dispatchers.IO) {
+                    dbFirestore.collection("users")
+                        .document(currentUserUid)
+                        .get()
+                        .await()
+                        .getString("email")
                 }
-
-                _users.value = userList
-
-                // Après avoir récupéré les users filtrés, on récupère les derniers messages
-                fetchChatPreviews(currentUserEmail, userList)
+                if (currentUserEmail != null) {
+                    fetchChatPreviews(currentUserEmail, usersList)
+                }
 
             } catch (e: Exception) {
-                Log.w("Firestore", "Error getting users: ", e)
+                Log.w("Firestore", "Error getting friends users: ", e)
             }
         }
     }
@@ -127,6 +138,7 @@ class ChsViewModel : ViewModel() {
                     val lastMessageTime = if (lastMessageObj != null) {
                         formatTimestampToHourMinute(lastMessageObj.createdAt)
                     } else ""
+                    Log.d("ChatPreview", "Fetched for ${user.username}: message='$lastMessageText' at '$lastMessageTime'")
 
                     chatPreviewsList.add(
                         ChatPreview(
@@ -138,7 +150,7 @@ class ChsViewModel : ViewModel() {
                     )
                 }
                 _chatPreviews.value = chatPreviewsList
-
+                Log.d("ChatPreview", "Total chat previews fetched: ${chatPreviewsList.size}")
             } catch (e: Exception) {
                 Log.e("ChsViewModel", "Error fetching chat previews", e)
             }

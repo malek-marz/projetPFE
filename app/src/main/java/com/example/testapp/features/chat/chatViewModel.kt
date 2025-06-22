@@ -119,12 +119,24 @@ class ChatViewModel : ViewModel() {
 
     }
 
-    private fun fetchSenderNameAndSend(context: Context, chatId: String, senderEmail: String, msgText: String) {
+    private fun fetchSenderNameAndSend(
+        context: Context, chatId: String, senderEmail: String, msgText: String
+    ) {
+        Log.d("ChatViewModel", "Fetching senderName for email: $senderEmail")
+
         firestore.collection("users")
             .whereEqualTo("email", senderEmail)
             .limit(1)
             .get()
             .addOnSuccessListener { documents ->
+                Log.d("ChatViewModel", "Documents found: ${documents.size()}")
+                if (!documents.isEmpty) {
+                    val username = documents.documents[0].getString("username")
+                    Log.d("ChatViewModel", "Username field value: $username")
+                } else {
+                    Log.d("ChatViewModel", "No user found with email: $senderEmail")
+                }
+
                 val senderName = if (!documents.isEmpty) {
                     documents.documents[0].getString("username") ?: "Unknown Sender"
                 } else {
@@ -132,7 +144,6 @@ class ChatViewModel : ViewModel() {
                 }
                 Log.d("ChatViewModel", "Fetched senderName from Firestore: $senderName")
 
-                // Now push the message to Realtime DB
                 val message = Message(
                     gmail = senderEmail,
                     sendergmail = senderEmail,
@@ -146,7 +157,6 @@ class ChatViewModel : ViewModel() {
                 db.reference.child("messages").child(chatId).push().setValue(message)
                     .addOnSuccessListener {
                         Log.d("ChatViewModel", "✅ Message sent to DB")
-                        // Send notification with correct senderName
                         postNotificationToUsers(context, chatId, senderName, msgText)
                     }
                     .addOnFailureListener {
@@ -157,7 +167,6 @@ class ChatViewModel : ViewModel() {
             }
             .addOnFailureListener {
                 Log.e("ChatViewModel", "❌ Failed to fetch sender name from Firestore", it)
-                // Fallback: use senderEmail as name
                 val fallbackName = senderEmail.substringBefore('@')
                 Log.d("ChatViewModel", "Using fallback senderName: $fallbackName")
 
@@ -183,6 +192,7 @@ class ChatViewModel : ViewModel() {
                 registerUserToChat(chatId)
             }
     }
+
 
     fun listenForMessages() {
         val sender = Firebase.auth.currentUser ?: return

@@ -21,20 +21,28 @@ class FirebaseMessageService : FirebaseMessagingService() {
         Log.d("FirebaseMessageService", "From: ${message.from} Data: ${message.data} Notification: ${message.notification}")
         Log.d("FirebaseMessageService", "Test de réception de message")
 
-        // Create channel once before showing notification
+        // Create channel before showing notification
         createNotificationChannel(applicationContext)
 
-        // Extract sender name and message text from data or notification
+        // Extract sender info
         val title = message.data["senderName"]
             ?: message.notification?.title
             ?: "Nouveau message"
+
         val body = message.data["messageText"]
             ?: message.notification?.body
             ?: "Vous avez un nouveau message"
 
-        // NEW: Check if sender is muted
         val senderUid = message.data["senderUid"]
         val currentUser = Firebase.auth.currentUser
+
+        // ✅ Skip notification if the message was sent by the current user
+        if (senderUid != null && currentUser != null && senderUid == currentUser.uid) {
+            Log.d("FirebaseMessageService", "Notification ignorée : message envoyé par l'utilisateur lui-même")
+            return
+        }
+
+        // ✅ Check if sender is muted
         if (senderUid != null && currentUser != null) {
             val db = FirebaseFirestore.getInstance()
             val userRef = db.collection("users").document(currentUser.uid)
@@ -48,7 +56,7 @@ class FirebaseMessageService : FirebaseMessagingService() {
                 showNotification(title, body)
             }.addOnFailureListener {
                 Log.e("FirebaseMessageService", "Erreur lors de la vérification des utilisateurs coupés", it)
-                showNotification(title, body) // fallback: show anyway
+                showNotification(title, body) // fallback: show notification
             }
         } else {
             showNotification(title, body)
@@ -56,23 +64,13 @@ class FirebaseMessageService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String?, message: String?) {
-        // Ignore notification if the message was sent by the current user
-        Firebase.auth.currentUser?.let {
-            val email = it.email ?: ""
-            if ((message?.contains(email, ignoreCase = true) == true)) {
-                Log.d("FirebaseMessageService", "Notification ignorée pour l'utilisateur lui-même")
-                return
-            }
-        }
-
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
         val notificationId = Random().nextInt(1000)
 
         val notification = NotificationCompat.Builder(this, "chat_notifications")
             .setContentTitle(title ?: "Nouveau message")
             .setContentText(message ?: "")
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // Make sure this icon exists in your res/drawable
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Replace with your app icon
             .setAutoCancel(true)
             .build()
 

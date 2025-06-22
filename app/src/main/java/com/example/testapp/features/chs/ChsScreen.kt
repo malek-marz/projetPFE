@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +39,6 @@ class Chs {
 
             var mutedUsers by remember { mutableStateOf<List<String>>(emptyList()) }
 
-            // Load muted list from Firestore
             LaunchedEffect(currentUid) {
                 currentUid?.let { uid ->
                     val doc = db.collection("users").document(uid).get().await()
@@ -73,13 +73,9 @@ class Chs {
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Search friends") },
+                        placeholder = { Text("Trouver amis") },
                         leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search Icon",
-                                tint = Color.Gray
-                            )
+                            Icon(Icons.Default.Search, contentDescription = "Search Icon", tint = Color.Gray)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -97,6 +93,35 @@ class Chs {
                         )
                     )
 
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Button(
+                            onClick = { navController.navigate("invitation_screen") },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.PersonAdd, contentDescription = "Inviter", tint = Color.White)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Invitation", color = Color.White)
+                        }
+
+                        Button(
+                            onClick = { navController.navigate("blocked_users") },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF616161)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Block, contentDescription = "Bloqués", tint = Color.White)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Bloqués", color = Color.White)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     LazyColumn {
                         items(filteredUsers) { user ->
                             FriendListItem(
@@ -105,63 +130,33 @@ class Chs {
                                 isMuted = mutedUsers.contains(user.uid),
                                 onReportClick = {
                                     navController.navigate("report_user/${user.uid}")
+                                },
+                                onDeleteClick = {
+                                    val db = FirebaseFirestore.getInstance()
+                                    val currentUserId = currentUid ?: return@FriendListItem
+
+                                    // Supprimer l'ami du côté de l'utilisateur courant
+                                    db.collection("users")
+                                        .document(currentUserId)
+                                        .collection("friends")
+                                        .document(user.uid)
+                                        .delete()
+
+                                    // Supprimer l'utilisateur courant du côté de l'ami
+                                    db.collection("users")
+                                        .document(user.uid)
+                                        .collection("friends")
+                                        .document(currentUserId)
+                                        .delete()
                                 }
+
+
                             )
                             Divider(
                                 modifier = Modifier.padding(start = 72.dp, end = 16.dp),
                                 color = Color(0xFFE0E0E0)
                             )
                         }
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Button(
-                        onClick = {
-                            navController.navigate("invitation_screen")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .clip(MaterialTheme.shapes.medium),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF4CAF50),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PersonAdd,
-                            contentDescription = "Invitation",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Invitation",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-
-                    Button(
-                        onClick = {
-                            navController.navigate("home")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                            .clip(MaterialTheme.shapes.medium),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0288D1),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(
-                            text = "Back to Home",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
                     }
                 }
             }
@@ -172,8 +167,32 @@ class Chs {
             user: UserDisplay,
             navController: NavController,
             isMuted: Boolean,
-            onReportClick: () -> Unit
+            onReportClick: () -> Unit,
+            onDeleteClick: () -> Unit
         ) {
+            var showDeleteDialog by remember { mutableStateOf(false) }
+
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onDeleteClick()
+                            showDeleteDialog = false
+                        }) {
+                            Text("Supprimer", color = Color.Red)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteDialog = false }) {
+                            Text("Annuler")
+                        }
+                    },
+                    title = { Text("Confirmer la suppression") },
+                    text = { Text("Voulez-vous vraiment supprimer cet utilisateur ?") }
+                )
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -204,28 +223,17 @@ class Chs {
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = user.username,
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            ),
-                            color = Color.Black
-                        )
-                        if (isMuted) {
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.VolumeOff,
-                                contentDescription = "Muted",
-                                tint = Color.Gray,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
+                    Text(
+                        text = user.username,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        ),
+                        color = Color.Black
+                    )
 
                     Text(
-                        text = "Tap to start a chat",
+                        text = "Appuyez pour discuter",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Light
@@ -236,13 +244,19 @@ class Chs {
                     )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
-
                 IconButton(onClick = { onReportClick() }) {
                     Icon(
                         imageVector = Icons.Filled.Flag,
                         contentDescription = "Report",
                         tint = Color(0xFFEF5350)
+                    )
+                }
+
+                IconButton(onClick = { showDeleteDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Supprimer",
+                        tint = Color(0xFF757575)
                     )
                 }
             }

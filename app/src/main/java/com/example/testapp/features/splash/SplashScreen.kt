@@ -123,24 +123,7 @@ class Splash {
                     }
 
                     // Test HomeScreen Button
-                    Button(
-                        onClick = { navController.navigate("HomeScreen") },
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .height(60.dp)
-                            .graphicsLayer(
-                                shadowElevation = 8f,
-                                shape = RoundedCornerShape(16.dp),
-                                clip = false
-                            ),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF28A745),
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text("Test HomeScreen", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
+
                 }
             }
         }

@@ -16,10 +16,8 @@ data class ChatPartnerUser(
     val gender: String = "",
     val criteria: List<String> = emptyList(),
     val profilePicUrl: String = "",
-    val savedCountryName: String = "" // <-- 🔥 Ajout ici
+    val savedCountryNames: List<String> = emptyList()
 )
-
-
 
 class ChatPartnerProfileViewModel : ViewModel() {
     private val _state = MutableStateFlow(ChatPartnerUser())
@@ -48,18 +46,18 @@ class ChatPartnerProfileViewModel : ViewModel() {
                         profilePicUrl = doc.getString("profilePicUrl") ?: ""
                     )
 
-                    // 🔥 Structure exacte : users/{uid}/savedCountries/selected_country
                     firestore.collection("users")
                         .document(uid)
                         .collection("savedCountries")
                         .document("selected_country")
                         .get()
                         .addOnSuccessListener { savedDoc ->
-                            val savedCountryName = savedDoc.getString("name") ?: ""
-                            _state.value = user.copy(savedCountryName = savedCountryName)
+                            val countriesList = savedDoc.get("countries") as? List<Map<String, Any>>
+                            val countryNames = countriesList?.mapNotNull { it["name"] as? String } ?: emptyList()
+                            _state.value = user.copy(savedCountryNames = countryNames)
                         }
                         .addOnFailureListener { e ->
-                            Log.e("Firestore", "Erreur pays sauvegardé", e)
+                            Log.e("Firestore", "Erreur pays sauvegardés", e)
                             _state.value = user
                         }
                 } else {

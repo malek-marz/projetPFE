@@ -176,7 +176,7 @@ fun ReportUserScreen(
         AlertDialog(
             onDismissRequest = { showBlockMuteDialog = false },
             title = { Text("Que souhaitez-vous faire ?") },
-            text = { Text("Voulez-vous aussi bloquer ou couper le son de cet utilisateur ?") },
+            text = { Text("Voulez-vous aussi bloquer cet utilisateur ?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.blockUser(reportedUserUid) { success ->
@@ -192,27 +192,8 @@ fun ReportUserScreen(
                     Text("🚫 Bloquer")
                 }
             },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = {
-                        viewModel.muteUser(reportedUserUid) { success ->
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    if (success) "Utilisateur coupé." else "Échec de la coupure.",
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
-                        }
-                        showBlockMuteDialog = false
-                    }) {
-                        Text("🔕 Couper le son")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(onClick = { showBlockMuteDialog = false }) {
-                        Text("Annuler")
-                    }
-                }
-            }
+
+
         )
     }
 }

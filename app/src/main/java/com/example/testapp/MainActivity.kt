@@ -1,5 +1,6 @@
 package com.example.testapp
 
+import BlockedUsersScreen
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -30,6 +31,7 @@ import com.example.testapp.features.register.Register
 import com.example.testapp.features.splash.Splash
 import com.example.testapp.features.chs.ReportUserScreen
 import com.example.testapp.features.USER.User
+import com.example.testapp.features.chs.InvitationScreen
 import com.example.testapp.presentation.country.CountryNav
 import com.example.testapp.presentation.country.CountryScreen
 import com.example.testapp.presentation.country.CountryViewModel
@@ -69,6 +71,12 @@ class MainActivity : ComponentActivity() {
                 composable("ProfileUserScreen") { ProfileUserScreen.profileUser(navController) }
                 composable("User") { User.user(navController) }
                 composable("Password") { Password.ForgotPasswordScreen(navController) }
+                composable("blocked_users") {
+                    BlockedUsersScreen()
+                }
+                composable("invitation_screen") {
+                    InvitationScreen(navController = navController)
+                }
 
                 composable(ProfileScreen.ProfileScreenRoute) { ProfileScreen(navController) }
                 // Chat screen with username and email params

@@ -98,21 +98,5 @@ class ReportUserViewModel : ViewModel() {
             }
     }
 
-    fun muteUser(reportedUid: String, onComplete: (Boolean) -> Unit) {
-        val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: run {
-            onComplete(false)
-            return
-        }
-        val userRef = db.collection("users").document(currentUid)
 
-        userRef.update("muted", FieldValue.arrayUnion(reportedUid))
-            .addOnSuccessListener {
-                Log.d(TAG, "User muted")
-                onComplete(true)
-            }
-            .addOnFailureListener {
-                Log.e(TAG, "Failed to mute user", it)
-                onComplete(false)
-            }
-    }
 }
