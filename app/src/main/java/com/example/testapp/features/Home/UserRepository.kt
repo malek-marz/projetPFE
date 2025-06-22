@@ -2,7 +2,9 @@ package com.example.testapp.repository
 
 import android.util.Log
 import com.example.testapp.models.FriendSuggestion
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
 class UserRepository(private val firestore: FirebaseFirestore) {
@@ -31,20 +33,48 @@ class UserRepository(private val firestore: FirebaseFirestore) {
         thresholdPercent: Double = 10.0
     ): List<FriendSuggestion> {
         return try {
-            Log.d(TAG, "Début récupération des suggestions")
+            Log.d(TAG, "📍 Début récupération des suggestions pour userId = $currentUserId")
 
-            // 1. Critères de l'utilisateur courant
+            // ✅ 1. Récupérer les IDs bloqués et amis
+            val blockedUserIds = getBlockedUserIds(currentUserId)
+            Log.d(TAG, "✅ Utilisateurs bloqués : $blockedUserIds")
+
+            val friendIds = getFriendIds(currentUserId)
+            Log.d(TAG, "✅ Amis actuels : $friendIds")
+
+            // ✅ 1.b Récupérer les invitations envoyées
+            val sentInvitationIdsSnapshot = firestore.collection("users")
+                .document(currentUserId)
+                .collection("invitations_envoyees")
+                .get()
+                .await()
+            val sentInvitationIds = sentInvitationIdsSnapshot.documents.map { it.id }
+            Log.d(TAG, "✅ Invitations envoyées : $sentInvitationIds")
+
+            // ✅ 1.c Récupérer les invitations reçues
+            val receivedInvitationIdsSnapshot = firestore.collection("users")
+                .document(currentUserId)
+                .collection("invitations_recues")
+                .get()
+                .await()
+            val receivedInvitationIds = receivedInvitationIdsSnapshot.documents.map { it.id }
+            Log.d(TAG, "✅ Invitations reçues : $receivedInvitationIds")
+
+            // ✅ 2. Critères utilisateur courant
             val currentUserSnapshot = firestore.collection("users")
                 .document(currentUserId)
                 .get()
                 .await()
+
             val currentUserCriteria = currentUserSnapshot.get("criteria") as? List<String> ?: emptyList()
+            Log.d(TAG, "✅ Critères utilisateur courant : $currentUserCriteria")
+
             if (currentUserCriteria.isEmpty()) {
-                Log.d(TAG, "Utilisateur courant sans critères")
+                Log.d(TAG, "⚠️ Utilisateur courant sans critères.")
                 return emptyList()
             }
 
-            // 2. Pays courant (lecture du dernier pays sauvegardé dans la liste "countries")
+            // ✅ 3. Dernier pays visité utilisateur courant
             val currentUserCountryDoc = firestore.collection("users")
                 .document(currentUserId)
                 .collection("savedCountries")
@@ -53,33 +83,45 @@ class UserRepository(private val firestore: FirebaseFirestore) {
                 .await()
 
             val currentUserCountriesList = currentUserCountryDoc.get("countries") as? List<Map<String, Any>>
-
             val currentUserCountry = currentUserCountriesList
                 ?.maxByOrNull { (it["timestamp"] as? com.google.firebase.Timestamp) ?: com.google.firebase.Timestamp.now() }
                 ?.get("name") as? String
 
+            Log.d(TAG, "✅ Dernier pays visité utilisateur courant : $currentUserCountry")
+
             if (currentUserCountry.isNullOrEmpty()) {
-                Log.d(TAG, "Utilisateur courant sans pays")
+                Log.d(TAG, "⚠️ Utilisateur courant sans pays visité.")
                 return emptyList()
             }
 
-            Log.d(TAG, "Pays utilisateur courant : $currentUserCountry")
-
-            // 3. Tous les utilisateurs
+            // ✅ 4. Récupérer tous les utilisateurs
             val allUsersSnapshot = firestore.collection("users").get().await()
+            Log.d(TAG, "📄 Nombre total d'utilisateurs récupérés : ${allUsersSnapshot.documents.size}")
+
             val suggestions = mutableListOf<FriendSuggestion>()
 
             for (doc in allUsersSnapshot.documents) {
                 val otherUserId = doc.id
-                if (otherUserId == currentUserId) continue
 
-                val otherCriteria = doc.get("criteria") as? List<String> ?: emptyList()
-                if (otherCriteria.isEmpty()) {
-                    Log.d(TAG, "Utilisateur $otherUserId ignoré : aucun critère")
+                // ✅ Exclure soi-même, amis, bloqués, invitations envoyées et reçues
+                if (
+                    otherUserId == currentUserId ||
+                    blockedUserIds.contains(otherUserId) ||
+                    friendIds.contains(otherUserId) ||
+                    sentInvitationIds.contains(otherUserId) ||
+                    receivedInvitationIds.contains(otherUserId)
+                ) {
+                    Log.d(TAG, "⛔ Utilisateur ignoré (ami, bloqué, ou invitation envoyée/reçue) : $otherUserId")
                     continue
                 }
 
-                // 4. Pays autre utilisateur (lecture du dernier pays sauvegardé dans la liste "countries")
+                val otherCriteria = doc.get("criteria") as? List<String> ?: emptyList()
+                if (otherCriteria.isEmpty()) {
+                    Log.d(TAG, "⚠️ Utilisateur $otherUserId sans critères, ignoré.")
+                    continue
+                }
+
+                // ✅ Dernier pays visité autre utilisateur
                 val otherCountryDoc = firestore.collection("users")
                     .document(otherUserId)
                     .collection("savedCountries")
@@ -88,28 +130,24 @@ class UserRepository(private val firestore: FirebaseFirestore) {
                     .await()
 
                 val otherCountriesList = otherCountryDoc.get("countries") as? List<Map<String, Any>>
-
                 val otherCountry = otherCountriesList
                     ?.maxByOrNull { (it["timestamp"] as? com.google.firebase.Timestamp) ?: com.google.firebase.Timestamp.now() }
                     ?.get("name") as? String
 
-                Log.d(TAG, "Pays utilisateur $otherUserId : $otherCountry")
                 if (otherCountry.isNullOrEmpty()) {
-                    Log.d(TAG, "Utilisateur $otherUserId ignoré : aucun pays")
+                    Log.d(TAG, "⚠️ Utilisateur $otherUserId sans pays visité, ignoré.")
                     continue
                 }
 
-                // 5. Vérifie pays en commun
-                if (currentUserCountry != otherCountry) {
-                    Log.d(TAG, "Utilisateur $otherUserId ignoré : pas de pays en commun")
+                if (otherCountry != currentUserCountry) {
+                    Log.d(TAG, "🌍 Pays différent pour $otherUserId : $otherCountry ≠ $currentUserCountry")
                     continue
                 }
 
-                // 6. Pourcentage d'intersection critères
+                // ✅ Pourcentage d'intersection des critères
                 val intersection = currentUserCriteria.intersect(otherCriteria.toSet())
                 val matchPercentage = (intersection.size.toDouble() / currentUserCriteria.size.toDouble()) * 100
-
-                Log.d(TAG, "Utilisateur $otherUserId : % match = $matchPercentage")
+                Log.d(TAG, "🔍 Match $otherUserId - ${intersection.size} critères communs - $matchPercentage%")
 
                 if (matchPercentage >= thresholdPercent) {
                     val suggestion = FriendSuggestion(
@@ -122,13 +160,14 @@ class UserRepository(private val firestore: FirebaseFirestore) {
                         matchPercentage = matchPercentage
                     )
                     suggestions.add(suggestion)
+                    Log.d(TAG, "✅ Suggestion ajoutée pour $otherUserId")
                 }
             }
 
-            Log.d(TAG, "Suggestions finales: ${suggestions.size}")
+            Log.d(TAG, "🎯 Suggestions finales : ${suggestions.size}")
             return suggestions
         } catch (e: Exception) {
-            Log.e(TAG, "Erreur lors du calcul des suggestions criteria+country: ${e.message}", e)
+            Log.e(TAG, "❌ Erreur lors du calcul des suggestions criteria+country: ${e.message}", e)
             return emptyList()
         }
     }
@@ -163,4 +202,20 @@ class UserRepository(private val firestore: FirebaseFirestore) {
             throw e
         }
     }
+    suspend fun getBlockedUserIds(userId: String): List<String> {
+        val snapshot = Firebase.firestore.collection("users").document(userId).get().await()
+        return snapshot.get("blocked") as? List<String> ?: emptyList()
+    }
+    suspend fun getFriendIds(userId: String): List<String> {
+        val snapshot = Firebase.firestore
+            .collection("users")
+            .document(userId)
+            .collection("friends")
+            .get()
+            .await()
+
+        return snapshot.documents.mapNotNull { it.id }
+    }
+
+
 }

@@ -17,14 +17,14 @@ class RegisterViewModel : ViewModel() {
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state
 
-    // Étape 1 : Création compte + envoi email de vérification
+    // Étape unique : Création compte + enregistrement Firestore + envoi email
     fun register(
         onRegisterSuccess: () -> Unit,
         onRegisterFailed: (String) -> Unit
     ) {
         val currentState = state.value
 
-        // Validation des données avant inscription
+        // Validation des données
         if (!validateRegisterModel(currentState)) {
             onRegisterFailed("Formulaire invalide : vérifiez les champs")
             return
@@ -37,58 +37,40 @@ class RegisterViewModel : ViewModel() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
-                    user?.sendEmailVerification()
-                        ?.addOnCompleteListener { emailTask ->
-                            if (emailTask.isSuccessful) {
-                                Log.i("Register", "Email de vérification envoyé à $email")
-                                // Ne pas enregistrer dans Firestore avant vérification email
-                                onRegisterSuccess()
-                            } else {
-                                onRegisterFailed("Échec de l'envoi de l'email de vérification : ${emailTask.exception?.message}")
-                            }
+                    val userId = user?.uid ?: return@addOnCompleteListener
+
+                    // Création des données Firestore immédiatement
+                    val userData = mapOf(
+                        "firstName" to currentState.firstName,
+                        "lastName" to currentState.lastName,
+                        "username" to currentState.username,
+                        "email" to currentState.email,
+                        "birthday" to currentState.birthday,
+                        "gender" to currentState.gender,
+                        "country" to currentState.country
+                    )
+
+                    db.collection("users").document(userId)
+                        .set(userData)
+                        .addOnSuccessListener {
+                            // Envoi de l'email de vérification
+                            user.sendEmailVerification()
+                                .addOnSuccessListener {
+                                    Log.i("Register", "Email de vérification envoyé à $email")
+                                    onRegisterSuccess()
+                                }
+                                .addOnFailureListener { e ->
+                                    onRegisterFailed("Email non envoyé : ${e.localizedMessage}")
+                                }
                         }
+                        .addOnFailureListener { e ->
+                            onRegisterFailed("Erreur Firestore : ${e.localizedMessage}")
+                        }
+
                 } else {
                     onRegisterFailed(task.exception?.message ?: "Inscription échouée")
                 }
             }
-    }
-
-    // Étape 2 : Après clic "J'ai vérifié mon email" — création document utilisateur Firestore
-    fun createUserDocumentIfEmailVerified(
-        onSuccess: () -> Unit,
-        onFailure: (String) -> Unit
-    ) {
-        val user = auth.currentUser
-        if (user == null) {
-            onFailure("Utilisateur non connecté")
-            return
-        }
-
-        user.reload().addOnSuccessListener {
-            if (user.isEmailVerified) {
-                val userId = user.uid
-                val userData = mapOf(
-                    "firstName" to state.value.firstName,
-                    "lastName" to state.value.lastName,
-                    "username" to state.value.username,
-                    "email" to state.value.email,
-                    "birthday" to state.value.birthday,
-                    "gender" to state.value.gender,
-                    "country" to state.value.country
-                )
-
-                db.collection("users").document(userId)
-                    .set(userData)
-                    .addOnSuccessListener { onSuccess() }
-                    .addOnFailureListener { e ->
-                        onFailure("Erreur lors de l'enregistrement Firestore : ${e.localizedMessage}")
-                    }
-            } else {
-                onFailure("Votre email n'a pas encore été vérifié.")
-            }
-        }.addOnFailureListener { e ->
-            onFailure("Erreur lors de la vérification email : ${e.localizedMessage}")
-        }
     }
 
     // === Mise à jour de l'état (copy) ===

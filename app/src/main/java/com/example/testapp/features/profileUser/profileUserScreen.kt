@@ -31,7 +31,7 @@ import com.google.accompanist.flowlayout.FlowRow
 class ProfileUserScreen {
     companion object {
         @Composable
-        fun profileUser(navController: NavController, viewModel: ProfileUserViewModel = viewModel()) {
+        fun profileUser(navController: NavController , viewModel: ProfileUserViewModel = viewModel()) {
             val state by viewModel.state.collectAsState()
             val context = LocalContext.current
 

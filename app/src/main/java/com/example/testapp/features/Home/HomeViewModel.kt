@@ -10,6 +10,7 @@ import com.example.testapp.features.Home.model.UserReview
 import com.example.testapp.models.FriendSuggestion
 import com.example.testapp.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -17,6 +18,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 
 
 import java.util.Calendar
@@ -50,7 +55,8 @@ data class Review(
                 val isLoading: StateFlow<Boolean> = _isLoading
 
                 private val _searchResults = MutableStateFlow<List<User>>(emptyList())
-                val searchResults: StateFlow<List<User>> = _searchResults
+                val searchResults: StateFlow<List<User>> = _searchResults.asStateFlow()
+
 
                 private val _showSearchResults = MutableStateFlow(false)
                 val showSearchResults: StateFlow<Boolean> = _showSearchResults
@@ -85,47 +91,32 @@ data class Review(
                 }
 
                 fun loadFriendSuggestionsByEmail(currentUserEmail: String) {
-                        Log.d(
-                                TAG,
-                                "Chargement des suggestions pour l'email : $currentUserEmail"
-                        )
+                        Log.d(TAG, "Chargement des suggestions pour l'email : $currentUserEmail")
                         viewModelScope.launch {
                                 _isLoading.value = true
                                 try {
-                                        val userId =
-                                                repository.getUserIdByEmail(currentUserEmail)
+                                        val userId = repository.getUserIdByEmail(currentUserEmail)
                                         Log.d(TAG, "ID utilisateur récupéré : $userId")
 
                                         if (userId == null) {
-                                                _errorMessage.value =
-                                                        "Utilisateur non trouvé"
+                                                _errorMessage.value = "Utilisateur non trouvé"
                                                 _friendSuggestions.value = emptyList()
-                                                Log.w(
-                                                        TAG,
-                                                        "Utilisateur non trouvé pour l'email : $currentUserEmail"
-                                                )
+                                                Log.w(TAG, "Utilisateur non trouvé pour l'email : $currentUserEmail")
                                         } else {
-                                                val suggestions =
-                                                        repository.getFriendSuggestionsByCriteriaOnly(
-                                                                userId
-                                                        )
-                                                Log.d(
-                                                        TAG,
-                                                        "${suggestions.size} suggestions récupérées"
-                                                )
-                                                _friendSuggestions.value = suggestions
+                                                val suggestions = repository.getFriendSuggestionsByCriteriaOnly(userId)
+                                                Log.d(TAG, "${suggestions.size} suggestions récupérées")
+
+                                                // Tri décroissant selon matchPercentage
+                                                val sortedSuggestions = suggestions.sortedByDescending { it.matchPercentage }
+
+                                                _friendSuggestions.value = sortedSuggestions
                                                 _errorMessage.value = null
 
-                                                val friendIds =
-                                                        suggestions.map { it.userId }
+                                                val friendIds = sortedSuggestions.map { it.userId }
                                                 loadNotes(userId, friendIds)
                                         }
                                 } catch (e: Exception) {
-                                        Log.e(
-                                                TAG,
-                                                "Erreur lors du chargement des suggestions : ${e.message}",
-                                                e
-                                        )
+                                        Log.e(TAG, "Erreur lors du chargement des suggestions : ${e.message}", e)
                                         _errorMessage.value = e.message
                                         _friendSuggestions.value = emptyList()
                                 } finally {
@@ -136,6 +127,7 @@ data class Review(
                 }
 
 
+
                 fun loadReviews() {
                         Log.d(TAG, "Début du chargement des reviews...")
 
@@ -144,79 +136,117 @@ data class Review(
                                 .get()
                                 .addOnSuccessListener { snapshot ->
                                         _reviews.clear()
-                                        Log.d(
-                                                TAG,
-                                                "Nombre de documents récupérés : ${snapshot.size()}"
-                                        )
+                                        Log.d(TAG, "Nombre de documents récupérés : ${snapshot.size()}")
 
                                         for (doc in snapshot.documents) {
                                                 val reviewText = doc.getString("review") ?: ""
                                                 val timestamp = doc.getLong("timestamp") ?: 0L
+                                                val rating = doc.getLong("rating")?.toInt() ?: 0 // récupère la note, si tu l'as
+                                                val countryName = doc.getString("country") ?: "Pays inconnu" // récupère le pays
 
                                                 // Récupère l'ID de l'utilisateur parent (document user)
                                                 val pathSegments = doc.reference.path.split("/")
-                                                val userId = pathSegments.getOrNull(
-                                                        pathSegments.indexOf("users") + 1
-                                                ) ?: ""
+                                                val userId = pathSegments.getOrNull(pathSegments.indexOf("users") + 1) ?: ""
 
                                                 // Charge son nom depuis /users/{userId}
                                                 db.collection("users").document(userId).get()
                                                         .addOnSuccessListener { userDoc ->
-                                                                val ownerName =
-                                                                        userDoc.getString("username")
-                                                                                ?: "Utilisateur inconnu"
+                                                                val ownerName = userDoc.getString("username") ?: "Utilisateur inconnu"
 
                                                                 val userReview = UserReview(
                                                                         review = reviewText,
                                                                         timestamp = timestamp,
-                                                                        ownerName = ownerName
+                                                                        ownerName = ownerName,
+                                                                        rating = rating,
+                                                                        countryName = countryName
                                                                 )
 
                                                                 _reviews.add(userReview)
-                                                                Log.d(
-                                                                        "ReviewDebug",
-                                                                        "Review ajoutée : ${userReview.review} de $ownerName"
-                                                                )
+                                                                Log.d("ReviewDebug", "Review ajoutée : ${userReview.review} de $ownerName")
                                                         }
                                         }
                                 }
                                 .addOnFailureListener { exception ->
-                                        Log.e(
-                                                TAG,
-                                                "Erreur lors du chargement des reviews : ${exception.message}",
-                                                exception
-                                        )
+                                        Log.e(TAG, "Erreur lors du chargement des reviews : ${exception.message}", exception)
                                 }
                 }
 
 
-                fun addFriend(currentUserId: String, friendEmail: String) {
-                        Log.d(
-                                TAG,
-                                "Tentative d'ajout d'ami : $friendEmail pour l'utilisateur $currentUserId"
-                        )
+                fun addFriend(friendEmail: String) {
+                        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                        if (currentUserId == null) {
+                                Log.e(TAG, "Utilisateur non connecté. Impossible d'envoyer une invitation.")
+                                _errorMessage.value = "Veuillez vous connecter pour envoyer une invitation."
+                                return
+                        }
+
+                        Log.d(TAG, "Tentative d'envoi d'invitation à : $friendEmail par $currentUserId")
+
                         viewModelScope.launch {
                                 try {
-                                        repository.addFriend(currentUserId, friendEmail)
-                                        Log.d(TAG, "Ami ajouté avec succès.")
-                                        val currentEmail =
-                                                FirebaseAuth.getInstance().currentUser?.email
-                                                        ?: ""
-                                        loadFriendSuggestionsByEmail(currentEmail)
+                                        val db = FirebaseFirestore.getInstance()
+
+                                        // Récupérer l'ID utilisateur destinataire via son email
+                                        Log.d(TAG, "Recherche de l'utilisateur avec l'email : $friendEmail")
+                                        val querySnapshot = db.collection("users")
+                                                .whereEqualTo("email", friendEmail)
+                                                .get()
+                                                .await()
+
+                                        if (!querySnapshot.isEmpty) {
+                                                val friendDoc = querySnapshot.documents[0]
+                                                val friendUserId = friendDoc.id
+                                                Log.d(TAG, "Utilisateur trouvé. ID = $friendUserId")
+
+                                                // Préparer les références Firestore
+                                                val sentInvitationRef = db.collection("users")
+                                                        .document(currentUserId)
+                                                        .collection("invitations_envoyees")
+                                                        .document(friendUserId)
+
+                                                val receivedInvitationRef = db.collection("users")
+                                                        .document(friendUserId)
+                                                        .collection("invitations_recues")
+                                                        .document(currentUserId)
+
+                                                // Préparer les données à écrire
+                                                val invitationData = mapOf("timestamp" to FieldValue.serverTimestamp())
+
+                                                // Écrire les deux invitations simultanément avec await()
+                                                sentInvitationRef.set(invitationData).await()
+                                                Log.d(TAG, "Invitation ajoutée à invitations_envoyees avec succès.")
+
+                                                receivedInvitationRef.set(invitationData).await()
+                                                Log.d(TAG, "Invitation ajoutée à invitations_recues avec succès.")
+// Après avoir récupéré friendUserId
+                                                _friendSuggestions.value = _friendSuggestions.value.filter { it.userId != friendUserId }
+
+                                                // Mise à jour des suggestions si nécessaire
+                                                val currentEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
+                                                Log.d(TAG, "Rafraîchissement des suggestions pour : $currentEmail")
+                                                loadFriendSuggestionsByEmail(currentEmail)
+
+                                        } else {
+                                                val error = "Utilisateur avec l'email $friendEmail non trouvé."
+                                                Log.e(TAG, error)
+                                                _errorMessage.value = error
+                                        }
                                 } catch (e: Exception) {
-                                        val error =
-                                                "Erreur lors de l'ajout d'un ami : ${e.message}"
+                                        val error = "Erreur lors de l'envoi de l'invitation : ${e.message}"
                                         Log.e(TAG, error, e)
                                         _errorMessage.value = error
                                 }
                         }
                 }
-
-
-                fun clearErrorMessage() {
-                        Log.d(TAG, "Effacement du message d'erreur.")
-                        _errorMessage.value = null
+                fun removeUserFromSearchResults(user: User) {
+                        val currentList = _searchResults.value.toMutableList()
+                        currentList.remove(user)
+                        _searchResults.value = currentList
                 }
+
+
+
+
 
 
                 fun saveNote(noteText: String, description: String = "", userEmail: String) {
@@ -312,15 +342,20 @@ data class Review(
 
                         idsToLoad.forEach { userId ->
                                 val userRef = Firebase.firestore.collection("users").document(userId)
+                                val selectedCountryRef = userRef.collection("savedCountries").document("selected_country")
 
-                                // Lecture du pays actuel dans savedCountries/selected_country/name
-                                userRef.collection("savedCountries")
-                                        .document("selected_country")
-                                        .get()
+                                // Récupérer le document selected_country
+                                selectedCountryRef.get()
                                         .addOnSuccessListener { countrySnapshot ->
-                                                val currentCountry = countrySnapshot.getString("name") ?: "Pays inconnu"
+                                                val countriesList = countrySnapshot.get("countries") as? List<Map<String, Any>>
+                                                val currentCountry = if (!countriesList.isNullOrEmpty()) {
+                                                        countriesList
+                                                                .sortedByDescending { (it["timestamp"] as? com.google.firebase.Timestamp)?.toDate() }
+                                                                .firstOrNull()?.get("name") as? String ?: "Pays inconnu"
+                                                } else {
+                                                        "Pays inconnu"
+                                                }
                                                 Log.d(TAG, "Pays actuel pour $userId : $currentCountry")
-
                                                 // Charger les notes de cet utilisateur
                                                 userRef.collection("notes")
                                                         .get()
@@ -366,7 +401,7 @@ data class Review(
                                                         }
                                         }
                                         .addOnFailureListener { e ->
-                                                Log.e(TAG, "Erreur récupération savedCountries pour $userId : ${e.message}", e)
+                                                Log.e(TAG, "Erreur récupération savedCountries/selected_country pour $userId : ${e.message}", e)
                                                 hadFailure = true
                                                 completed++
                                                 if (completed == idsToLoad.size) {
@@ -378,8 +413,6 @@ data class Review(
                                         }
                         }
                 }
-
-
 
                 fun updateReviewRating(review: UserReview, newRating: Int) {
                         // Trouver l'index de la review à modifier
@@ -486,51 +519,97 @@ data class Review(
 
 
                 fun searchUsers(
+                        currentUserId: String,
                         selectedCountry: String? = null,
                         selectedgender: String? = null,
                         selectedMinAge: Int? = null,
                         selectedMaxAge: Int? = null,
+                        selectedLanguage: String? = null, // Champ singulier, type String
                         onResult: (List<User>) -> Unit,
                         onError: (String) -> Unit
                 ) {
                         val TAG = "SearchUsers"
-                        Log.d(TAG, "Recherche avec filtres : country=$selectedCountry, gender=$selectedgender, minAge=$selectedMinAge, maxAge=$selectedMaxAge")
+                        Log.d(TAG, "🔍 Recherche avec filtres : country=$selectedCountry, gender=$selectedgender, minAge=$selectedMinAge, maxAge=$selectedMaxAge, language=$selectedLanguage")
 
-                        FirebaseFirestore.getInstance().collection("users")
-                                .get()
-                                .addOnSuccessListener { result ->
-                                        Log.d(TAG, "Documents reçus: ${result.size()}")
+                        _showSearchResults.value = true
 
-                                        val users = result.documents.mapNotNull { doc ->
-                                                try {
-                                                        val user = doc.toObject(User::class.java)
-                                                        val ageCalc = calculateAge(doc.getString("birthday"))
-                                                        val countryFromDoc = doc.getString("country")
-                                                        user?.copy(age = ageCalc, country = countryFromDoc)
-                                                } catch (e: Exception) {
-                                                        Log.e(TAG, "Erreur conversion document en User: ${e.message}")
-                                                        null
+                        // 🔽 Récupérer les utilisateurs bloqués et amis d'abord
+                        CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                        val userRepository = UserRepository(FirebaseFirestore.getInstance())
+                                        val blockedUserIds = userRepository.getBlockedUserIds(currentUserId)
+                                        val friendIds = userRepository.getFriendIds(currentUserId)
+
+
+                                        FirebaseFirestore.getInstance().collection("users")
+                                                .get()
+                                                .addOnSuccessListener { result ->
+                                                        Log.d(TAG, "📥 Documents reçus: ${result.size()}")
+
+                                                        val users = result.documents.mapNotNull { doc ->
+                                                                val userId = doc.id
+
+                                                                // ✅ Ignorer soi-même, amis et bloqués
+                                                                if (
+                                                                        userId == currentUserId ||
+                                                                        blockedUserIds.contains(userId) ||
+                                                                        friendIds.contains(userId)
+                                                                ) {
+                                                                        Log.d(TAG, "⛔ Utilisateur ignoré: $userId (bloqué ou ami)")
+                                                                        return@mapNotNull null
+                                                                }
+
+                                                                try {
+                                                                        val user = doc.toObject(User::class.java)
+                                                                        val ageCalc = calculateAge(doc.getString("birthday"))
+                                                                        val countryFromDoc = doc.getString("country")
+                                                                        val languageFromDoc = doc.getString("selectedLanguage")  // champ singulier
+
+                                                                        Log.d(TAG, "✅ Document ID=${doc.id} - user=${user?.firstName} ${user?.lastName}, age=$ageCalc, country=$countryFromDoc, language=$languageFromDoc")
+
+                                                                        user?.copy(age = ageCalc, country = countryFromDoc, selectedLanguage = languageFromDoc)
+                                                                } catch (e: Exception) {
+                                                                        Log.e(TAG, "❌ Erreur conversion document en User: ${e.message}", e)
+                                                                        null
+                                                                }
+                                                        }.filter { user ->
+                                                                val matchesCountry = selectedCountry.isNullOrBlank() || user.country == selectedCountry
+                                                                val matchesGender = selectedgender.isNullOrBlank() || user.gender == selectedgender
+                                                                val matchesAge = (selectedMinAge == null || (user.age ?: 0) >= selectedMinAge) &&
+                                                                        (selectedMaxAge == null || (user.age ?: 0) <= selectedMaxAge)
+                                                                val matchesLanguage = selectedLanguage.isNullOrBlank() ||
+                                                                        (user.selectedLanguage == selectedLanguage)
+
+                                                                val match = matchesCountry && matchesGender && matchesAge && matchesLanguage
+                                                                Log.d(TAG, "🔍 Filtrage utilisateur ${user.firstName} -> match=$match (pays=$matchesCountry, genre=$matchesGender, âge=$matchesAge, langue=$matchesLanguage)")
+                                                                match
+                                                        }
+
+                                                        Log.d(TAG, "✅ Utilisateurs après filtrage: ${users.size}")
+                                                        _searchResults.value = users
+                                                        onResult(users)
                                                 }
-                                        }.filter { user ->
-                                                val matchesCountry = selectedCountry.isNullOrBlank() || user.country == selectedCountry
-                                                val matchesGender = selectedgender.isNullOrBlank() || user.gender == selectedgender
-                                                val matchesAge = (selectedMinAge == null || (user.age ?: 0) >= selectedMinAge) &&
-                                                        (selectedMaxAge == null || (user.age ?: 0) <= selectedMaxAge)
+                                                .addOnFailureListener { e ->
+                                                        Log.e(TAG, "❌ Erreur récupération utilisateurs: ${e.message}", e)
+                                                        onError(e.message ?: "Erreur lors de la récupération des utilisateurs.")
+                                                }
 
-                                                val match = matchesCountry && matchesGender && matchesAge
-                                                Log.d(TAG, "Filtrage utilisateur ${user.firstName} -> matches=$match")
-                                                match
-                                        }
-
-                                        Log.d(TAG, "Utilisateurs après filtrage: ${users.size}")
-                                        _searchResults.value = users
-                                        onResult(users)
+                                } catch (e: Exception) {
+                                        Log.e(TAG, "❌ Erreur récupération amis ou utilisateurs bloqués: ${e.message}", e)
+                                        onError("Erreur récupération amis ou bloqués.")
                                 }
-                                .addOnFailureListener { e ->
-                                        Log.e(TAG, "Erreur récupération utilisateurs: ${e.message}")
-                                        onError(e.message ?: "Erreur lors de la récupération des utilisateurs.")
-                                }
+                        }
                 }
+
+                fun ignoreUser(userId: String) {
+                        _searchResults.value = _searchResults.value.filter { it.userId != userId }
+                }
+
+                fun removeFriendSuggestion(email: String) {
+                        _friendSuggestions.value = _friendSuggestions.value.filter { it.email != email }
+                }
+
+
                 fun clearSearch() {
                         searchQuery.value = ""
                         selectedCountryFilter.value = null
