@@ -1,5 +1,6 @@
         package com.example.testapp
 
+        import BlockedUsersScreen
         import SelectCountryMapScreen
         import android.os.Bundle
         import android.webkit.WebView
@@ -30,6 +31,7 @@
         import com.example.testapp.features.splash.Splash
         import com.example.testapp.features.chs.ReportUserScreen
         import com.example.testapp.features.USER.User
+        import com.example.testapp.features.chs.InvitationScreen
         import com.example.testapp.presentation.country.CountryNav
         import com.example.testapp.presentation.country.CountryScreen
         import com.example.testapp.presentation.country.CountryViewModel
@@ -66,6 +68,13 @@
                                 viewModel = viewModel
                             )
                         }
+                        composable("blocked_users") {
+                            BlockedUsersScreen()
+                        }
+                        composable("invitation_screen") {
+                            InvitationScreen(navController = navController)
+                        }
+
 
                         composable(Buddy.buddyRoute) { Buddy.buddy(navController) }
                         composable("Chs") { Chs.ChsScreen(navController) }
@@ -147,6 +156,9 @@
                                 navController.popBackStack()
                             }
                         }
+
+
+
                     }
                     }
                 }
