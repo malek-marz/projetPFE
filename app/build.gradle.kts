@@ -79,6 +79,8 @@ dependencies {
     implementation(libs.places)
     implementation(libs.coil.compose)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.androidx.room.runtime.android)
+    implementation(libs.androidx.preference.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -88,10 +90,16 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+
     // navigation
     implementation(libs.compose.navigation)
     implementation(libs.accompanist.flowlayout.v0280)
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation ("com.google.maps.android:maps-compose:2.11.2")
+    implementation ("com.google.android.gms:play-services-maps:18.1.0")
+    implementation ("org.osmdroid:osmdroid-android:6.1.14")
+
+
 
 
     // room

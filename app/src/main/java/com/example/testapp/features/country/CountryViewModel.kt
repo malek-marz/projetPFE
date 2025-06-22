@@ -38,6 +38,9 @@ class CountryViewModel : ViewModel() {
 
     private val _recommendedPlus = mutableStateOf<String?>(null)
     val recommendedPlus: State<String?> = _recommendedPlus
+    private val _visitedCountries = MutableStateFlow<List<String>>(emptyList())
+    val visitedCountries: StateFlow<List<String>> = _visitedCountries
+
 
     fun fetchCountryInfoBasedOnInterests(Interests: List<String>) {
         Log.d("CountryViewModel", "Intérêts reçus dans fetchCountryInfoBasedOnInterests: $Interests")
@@ -211,8 +214,10 @@ class CountryViewModel : ViewModel() {
     }
 
 
-    fun saveUserReview(
+    fun saveUserReviewForCountry(
+        countryName: String,
         reviewText: String,
+        ratingStars: Int,
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
@@ -223,9 +228,11 @@ class CountryViewModel : ViewModel() {
         }
 
         val reviewData = hashMapOf(
+            "country" to countryName,
             "review" to reviewText,
+            "rating" to ratingStars,
             "timestamp" to System.currentTimeMillis(),
-            "ownerName" to (user.displayName ?: user.email ?: "Utilisateur inconnu") // ✅ Ajouté ici
+            "ownerName" to (user.displayName ?: user.email ?: "Utilisateur inconnu")
         )
 
         db.collection("users")
@@ -252,6 +259,32 @@ class CountryViewModel : ViewModel() {
         fetchCountryInfoBasedOnInterests(currentInterests)
         onComplete()
     }
+    fun fetchVisitedCountries(onComplete: () -> Unit = {}) {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            _errorMessage.value = "Utilisateur non connecté"
+            onComplete()
+            return
+        }
+
+        db.collection("users")
+            .document(user.uid)
+            .collection("savedCountries")
+            .document("selected_country")
+            .get()
+            .addOnSuccessListener { document ->
+                val countries = (document.get("countries") as? List<Map<String, Any>>)
+                    ?.mapNotNull { it["name"] as? String }
+                    ?: emptyList()
+                _visitedCountries.value = countries
+                onComplete()
+            }
+            .addOnFailureListener { e ->
+                _errorMessage.value = "Erreur lors du chargement des pays visités : ${e.message}"
+                onComplete()
+            }
+    }
+
 
     private fun extractInterestsFromLastPrompt(): List<String> {
         // Extraction simple des intérêts depuis le dernier prompt généré

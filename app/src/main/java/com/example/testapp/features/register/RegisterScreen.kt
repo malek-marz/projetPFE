@@ -268,17 +268,29 @@ fun GenderDropdown(selectedGender: String, onGenderSelected: (String) -> Unit) {
 @Composable
 fun CountryDropdown(selectedCountry: String, onCountrySelected: (String) -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
-    val countries = listOf("Tunisie", "France", "Canada", "USA", "Allemagne", "Autre")
+    var showAllCountriesDialog by remember { mutableStateOf(false) }
+
+    val mainCountries = listOf("Tunisie", "France", "Canada", "USA", "Allemagne", "Autre")
+    val allCountries = listOf(
+        "Afghanistan", "Albanie", "Algérie", "Allemagne", "Andorre", "Angola", "Argentine",
+        "Australie", "Autriche", "Belgique", "Brésil", "Canada", "Chine", "Danemark",
+        "Égypte", "Espagne", "États-Unis", "France", "Grèce", "Inde", "Italie", "Japon",
+        "Maroc", "Mexique", "Norvège", "Pays-Bas", "Portugal", "Royaume-Uni", "Russie",
+        "Suède", "Suisse", "Tunisie", "Turquie", "Ukraine", "Venezuela", "Yémen", "Zambie"
+        // Tu peux compléter avec tous les pays du monde
+    )
 
     ExposedDropdownMenuBox(
         expanded = isExpanded,
-        onExpandedChange = { isExpanded = it }
+        onExpandedChange = { isExpanded = !isExpanded }
     ) {
         OutlinedTextField(
             value = selectedCountry,
             onValueChange = {},
             readOnly = true,
-            leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Pays") },
+            leadingIcon = {
+                Icon(imageVector = Icons.Filled.Person, contentDescription = "Pays")
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(),
@@ -287,16 +299,47 @@ fun CountryDropdown(selectedCountry: String, onCountrySelected: (String) -> Unit
             },
             label = { Text("Pays") }
         )
+
         ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
-            countries.forEach { country ->
+            mainCountries.forEach { country ->
                 DropdownMenuItem(
                     text = { Text(country) },
                     onClick = {
-                        onCountrySelected(country)
                         isExpanded = false
+                        if (country == "Autre") {
+                            showAllCountriesDialog = true
+                        } else {
+                            onCountrySelected(country)
+                        }
                     }
                 )
             }
         }
     }
+
+    // Dialog pour tous les pays
+    if (showAllCountriesDialog) {
+        AlertDialog(
+            onDismissRequest = { showAllCountriesDialog = false },
+            confirmButton = {},
+            title = { Text("Sélectionner un pays") },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    allCountries.forEach { country ->
+                        Text(
+                            text = country,
+                            modifier = Modifier
+                                .clickable {
+                                    onCountrySelected(country)
+                                    showAllCountriesDialog = false
+                                }
+                                .padding(vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        )
+    }
 }
+
+

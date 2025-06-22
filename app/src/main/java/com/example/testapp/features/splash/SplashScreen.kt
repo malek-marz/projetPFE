@@ -122,7 +122,6 @@ class Splash {
                         Text("Create account", fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
 
-                    // Test HomeScreen Button
 
                 }
             }
